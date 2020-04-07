@@ -10,7 +10,7 @@ namespace CollisionFinder
 
     class MtrCatalogFileProperty
     {
-        private int _find_size = 500;
+        private readonly int _find_size = 500;
         public string FilePath { get; set; }
 
         public int FirstRow { get; set; } 

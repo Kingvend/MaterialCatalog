@@ -102,7 +102,6 @@ namespace CollisionFinder
 
         public static void Header(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
         {
-            // test git
             double minSize = 50;
             double maxSize = 150;
             sheet.Cells[1, 1].Value = "СПРАВОЧНИК МТР";
@@ -140,77 +139,128 @@ namespace CollisionFinder
             sheet.Cells[2, 18].Value = "Сумма по альтернативным ЕИ";
 
             int numRow = 4;
-            var NameGroup = MtrCatalogList
-                .GroupBy(s => s.MaterialName);
 
-            
-            foreach(var s1 in NameGroup)
+            var ShortNameGroup = MtrCatalogList
+                .GroupBy(s => s.MaterialFullName);
+            foreach(var s0 in ShortNameGroup)
             {
-                bool flagHeader = true;
-                int headerRow = numRow;
-                double sumB = 0;
-                double sumA = 0;
-                double countB, countA;
-                double priceB, priceA;
+                //bool flagHeader_0 = true;
+                //bool flagHeader_2 = false;
+                //int header_0_Row = numRow;
+                var NameGroup = s0
+                .GroupBy(s => s.MaterialName);
+                sheet.Cells[numRow, 4].Value = s0.Key.ToString();
+                sheet.Cells[numRow, 4].Style.WrapText = true;
+                numRow++;
+                foreach (var s1 in NameGroup)
+                {
+                    //bool flagHeader_1 = false;
+                   
+                    int header_1_Row = numRow;
+                    //if (!flagHeader_0 && !flagHeader_2)
+                    //{
+                    //    flagHeader_1 = true;
+                    //    header_1_Row = numRow;
+                    //}
+                  
+                    double sumB = 0;
+                    double sumA = 0;
+                    double countB, countA;
+                    double priceB, priceA;
 
-                sheet.Cells[numRow, 3].Value = s1.Key.ToString();               
-                var tt = s1
-                   .Select(s => s.MaterialCode)
-                   .Distinct()
-                   .Count();
-                if(tt > 1)
-                {
-                    sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Orange);
-                }
-                else
-                {
-                    sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Green);
-                }
-                var gg = s1
-                    .OrderBy(s => s.MaterialCode);
-                foreach (var s2 in gg)
-                {
-                    sheet.Cells[numRow, 1].Value = s2.MaterialCode;
-                    sheet.Cells[numRow, 2].Value = s2.BlockCode;
-                    //sheet.Cells[numRow, 3].Value = s2.MaterialName;
-                    sheet.Cells[numRow, 4].Value = s2.MaterialFullName;
-                    sheet.Cells[numRow, 4].Style.WrapText = true;
-                    sheet.Cells[numRow, 4].AutoFitColumns(minSize, maxSize);
-                    sheet.Cells[numRow, 6].Value = s2.GroupName;
-                    sheet.Cells[numRow, 7].Value = s2.GroupCode;
-                    sheet.Cells[numRow, 8].Value = s2.NaimCodeClass;
-                    sheet.Cells[numRow, 9].Value = s2.ConsigneeDetail;
-                    sheet.Cells[numRow, 10].Value = s2.DeliveryDate;
-                    sheet.Cells[numRow, 11].Value = s2.BasisMU;
-                    sheet.Cells[numRow, 12].Value = s2.BasisMUCount;
-                    sheet.Cells[numRow, 13].Value = s2.BasisMUPrice;
-                   if(Double.TryParse(s2.BasisMUCount,out countB) && Double.TryParse(s2.BasisMUPrice, out priceB))
-                    {
-                        sumB += (countB * priceB);
-                    }
-                    sheet.Cells[numRow, 14].Value = s2.AltMU;
-                    sheet.Cells[numRow, 15].Value = s2.AltMUCount;
-                    sheet.Cells[numRow, 16].Value = s2.AltMUPrice;
-                    if (Double.TryParse(s2.AltMUCount, out countA) && Double.TryParse(s2.AltMUPrice, out priceA))
-                    {
-                        sumA += (countA * priceA);
-                    }
+                    sheet.Cells[numRow, 3].Value = s1.Key.ToString();
 
-                    if (flagHeader)
+                    var tt = s1
+                       .Select(s => s.MaterialCode)
+                       .Distinct()
+                       .Count();
+                    if (tt > 1)
                     {
-                        flagHeader = false;
+                        sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Orange);
                     }
                     else
                     {
-                        sheet.Row(numRow).OutlineLevel = 1;
-                        sheet.Row(numRow).Collapsed = true;
+                        sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Green);
                     }
-                    numRow++;
+
+                    var gg = s1
+                        .OrderBy(s => s.MaterialCode);
+                    foreach (var s2 in gg)
+                    {
+                        sheet.Cells[numRow, 1].Value = s2.MaterialCode;
+                        sheet.Cells[numRow, 2].Value = s2.BlockCode;
+                        //sheet.Cells[numRow, 3].Value = s2.MaterialName;
+                        //sheet.Cells[numRow, 4].Value = s2.MaterialFullName;                       
+                        //sheet.Cells[numRow, 4].AutoFitColumns(minSize, maxSize);
+                        sheet.Cells[numRow, 6].Value = s2.GroupName;
+                        sheet.Cells[numRow, 7].Value = s2.GroupCode;
+                        sheet.Cells[numRow, 8].Value = s2.NaimCodeClass;
+                        sheet.Cells[numRow, 9].Value = s2.ConsigneeDetail;
+                        sheet.Cells[numRow, 10].Value = s2.DeliveryDate;
+                        sheet.Cells[numRow, 11].Value = s2.BasisMU;
+                        sheet.Cells[numRow, 12].Value = s2.BasisMUCount;
+                        sheet.Cells[numRow, 13].Value = s2.BasisMUPrice;
+
+                        if (Double.TryParse(s2.BasisMUCount, out countB) && Double.TryParse(s2.BasisMUPrice, out priceB))
+                        {
+                            sumB += (countB * priceB);
+                        }
+                        sheet.Cells[numRow, 14].Value = s2.AltMU;
+                        sheet.Cells[numRow, 15].Value = s2.AltMUCount;
+                        sheet.Cells[numRow, 16].Value = s2.AltMUPrice;
+                        if (Double.TryParse(s2.AltMUCount, out countA) && Double.TryParse(s2.AltMUPrice, out priceA))
+                        {
+                            sumA += (countA * priceA);
+                        }
+
+                        //if (flagHeader_0 && !flagHeader_1)
+                        //{
+                        //    flagHeader_0 = false;
+                        //}
+                        //else
+                        //{
+                        //    if(!flagHeader_0 && flagHeader_1)
+                        //    {
+                        //        sheet.Row(numRow).OutlineLevel = 1;
+                        //        sheet.Row(numRow).Collapsed = true;
+                        //        flagHeader_1 = false;
+                        //        flagHeader_2 = true;
+                        //    }                           
+                        //    else
+                        //    {
+                        //        sheet.Row(numRow).OutlineLevel = 2;
+                        //        sheet.Row(numRow).Collapsed = true;
+                        //    }
+                        //}
+                        numRow++;
+                    }
+                    sheet.Cells[header_1_Row, 17].Value = sumB.ToString();
+                    sheet.Cells[header_1_Row, 18].Value = sumA.ToString();
                 }
-                sheet.Cells[headerRow, 17].Value = sumB.ToString();
-                sheet.Cells[headerRow, 18].Value = sumA.ToString();
+            }
+
+            for(int i = 4; i < numRow; i++)
+            {
+                if(sheet.Cells[i, 4].Value == null)
+                {
+                    if (i == 4) continue;
+                    else
+                    {
+                        if(sheet.Cells[i, 3].Value == null)
+                        {
+                            sheet.Row(i).OutlineLevel = 2;
+                            sheet.Row(i).Collapsed = true;
+                        }
+                        else
+                        {
+                            sheet.Row(i).OutlineLevel = 1;
+                            sheet.Row(i).Collapsed = true;
+                        }
+                       
+                    }
+                }
             }
             //for(int i = 0; i < MtrCatalogList.Count;i++)
             //{

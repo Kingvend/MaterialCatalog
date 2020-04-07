@@ -48,7 +48,7 @@ namespace CollisionFinder
 
             var MaterialCatalog = InputOutput.ReadMaterialForCatalog(mtrProp);
 
-            double minSize = 50;
+            double minSize = 75;
             double maxSize = 150;
             using (ExcelPackage doc = new ExcelPackage())
             {
@@ -60,9 +60,19 @@ namespace CollisionFinder
                     if (i == 4)
                     {
                         sheet.Column(i).AutoFit(minSize, maxSize);
+                        //continue;
                     }
-                    if (i == 5) continue;
-                    sheet.Column(i).AutoFit();
+                    else
+                    {
+                        if (i == 5)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            sheet.Column(i).AutoFit();                            
+                        }
+                    }
                     sheet.Column(i).Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                 }
                
