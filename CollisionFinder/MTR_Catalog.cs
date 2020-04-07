@@ -102,8 +102,6 @@ namespace CollisionFinder
 
         public static void Header(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
         {
-            double minSize = 50;
-            double maxSize = 150;
             sheet.Cells[1, 1].Value = "СПРАВОЧНИК МТР";
             sheet.Cells[1, 1, 1, 8].Merge = true;
 
@@ -144,24 +142,14 @@ namespace CollisionFinder
                 .GroupBy(s => s.MaterialFullName);
             foreach(var s0 in ShortNameGroup)
             {
-                //bool flagHeader_0 = true;
-                //bool flagHeader_2 = false;
-                //int header_0_Row = numRow;
                 var NameGroup = s0
                 .GroupBy(s => s.MaterialName);
                 sheet.Cells[numRow, 4].Value = s0.Key.ToString();
                 sheet.Cells[numRow, 4].Style.WrapText = true;
                 numRow++;
                 foreach (var s1 in NameGroup)
-                {
-                    //bool flagHeader_1 = false;
-                   
+                {                
                     int header_1_Row = numRow;
-                    //if (!flagHeader_0 && !flagHeader_2)
-                    //{
-                    //    flagHeader_1 = true;
-                    //    header_1_Row = numRow;
-                    //}
                   
                     double sumB = 0;
                     double sumA = 0;
@@ -214,26 +202,7 @@ namespace CollisionFinder
                         {
                             sumA += (countA * priceA);
                         }
-
-                        //if (flagHeader_0 && !flagHeader_1)
-                        //{
-                        //    flagHeader_0 = false;
-                        //}
-                        //else
-                        //{
-                        //    if(!flagHeader_0 && flagHeader_1)
-                        //    {
-                        //        sheet.Row(numRow).OutlineLevel = 1;
-                        //        sheet.Row(numRow).Collapsed = true;
-                        //        flagHeader_1 = false;
-                        //        flagHeader_2 = true;
-                        //    }                           
-                        //    else
-                        //    {
-                        //        sheet.Row(numRow).OutlineLevel = 2;
-                        //        sheet.Row(numRow).Collapsed = true;
-                        //    }
-                        //}
+                       
                         numRow++;
                     }
                     sheet.Cells[header_1_Row, 17].Value = sumB.ToString();
@@ -261,27 +230,7 @@ namespace CollisionFinder
                        
                     }
                 }
-            }
-            //for(int i = 0; i < MtrCatalogList.Count;i++)
-            //{
-            //    sheet.Cells[i + 4, 1].Value = MtrCatalogList[i].MaterialCode;
-            //    sheet.Cells[i + 4, 2].Value = MtrCatalogList[i].BlockCode;
-            //    sheet.Cells[i + 4, 3].Value = MtrCatalogList[i].MaterialName;
-            //    sheet.Cells[i + 4, 4].Value = MtrCatalogList[i].MaterialFullName;
-            //    sheet.Cells[i + 4, 4].Style.WrapText = true;
-            //    sheet.Cells[i + 4, 4].AutoFitColumns(minSize, maxSize);               
-            //    sheet.Cells[i + 4, 6].Value = MtrCatalogList[i].GroupName;
-            //    sheet.Cells[i + 4, 7].Value = MtrCatalogList[i].GroupCode;
-            //    sheet.Cells[i + 4, 8].Value = MtrCatalogList[i].NaimCodeClass;
-            //    sheet.Cells[i + 4, 9].Value = MtrCatalogList[i].ConsigneeDetail;
-            //    sheet.Cells[i + 4, 10].Value = MtrCatalogList[i].DeliveryDate;
-            //    sheet.Cells[i + 4, 11].Value = MtrCatalogList[i].BasisMU;
-            //    sheet.Cells[i + 4, 12].Value = MtrCatalogList[i].BasisMUCount;
-            //    sheet.Cells[i + 4, 13].Value = MtrCatalogList[i].BasisMUPrice;
-            //    sheet.Cells[i + 4, 14].Value = MtrCatalogList[i].AltMU;
-            //    sheet.Cells[i + 4, 15].Value = MtrCatalogList[i].AltMUCount;
-            //    sheet.Cells[i + 4, 16].Value = MtrCatalogList[i].AltMUPrice;
-            //}
+            }           
         }
     }
 }
