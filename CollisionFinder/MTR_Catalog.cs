@@ -102,6 +102,7 @@ namespace CollisionFinder
 
         public static void Header(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
         {
+            // test git
             double minSize = 50;
             double maxSize = 150;
             sheet.Cells[1, 1].Value = "СПРАВОЧНИК МТР";
