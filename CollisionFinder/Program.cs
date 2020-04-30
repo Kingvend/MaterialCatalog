@@ -1,12 +1,21 @@
 using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace CollisionFinder
 {
 
+   
+
     class Program
     {
+        public static List<DB.Material> materialDB = new List<DB.Material>();
+        public static List<DB.MaterialGroup> materialGroupDB = new List<DB.MaterialGroup>();
+        public static List<DB.Material_code> materialCodeDB = new List<DB.Material_code>();
+        public static List<DB.Custom_history> customHistoryDB = new List<DB.Custom_history>();
+     
         static void Main(string[] args)
         {
             //string path = @"C:\Users\Alex\Desktop\файлы\ДВ ГПН Ямал 16.03.2020.zip\ДВ ГПН Ямал 16.03.2020_test.xlsx";
@@ -18,9 +27,15 @@ namespace CollisionFinder
             //string newPath_3 = @"C:\Users\Alex\Desktop\файлы\TotalFile\TotalFile.xlsx";
             //  MyCLI.Menu(); 
             Test();
+            //Test2();
 
 
         }
+        static void Test2()
+        {
+            
+        }
+
         static void Test()
         {
             string fileName = @"C:\Users\Alex\Desktop\ttt.xlsx";
@@ -36,26 +51,31 @@ namespace CollisionFinder
             };
             mtrProp.Add(MtrCatalogFileProperty);
 
-            MtrCatalogFileProperty = new MtrCatalogFileProperty
-            {
-                FilePath = @"C:\Users\Alex\Desktop\файлы\Выгрузка 509 17.03.2020.zip\Выгрузка 509 17.03.2020_test.xlsx",
+            //MtrCatalogFileProperty = new MtrCatalogFileProperty
+            //{
+            //    FilePath = @"C:\Users\Alex\Desktop\файлы\Выгрузка 509 17.03.2020.zip\Выгрузка 509 17.03.2020_test.xlsx",
 
-                FirstRow = 2,
+            //    FirstRow = 2,
 
-                LastRow = 106772,
-            };
-            mtrProp.Add(MtrCatalogFileProperty);
+            //    LastRow = 106772,
+            //};
+            //mtrProp.Add(MtrCatalogFileProperty);
 
             var MaterialCatalog = InputOutput.ReadMaterialForCatalog(mtrProp);
 
-            double minSize = 75;
+
+                    double minSize = 75;
             double maxSize = 150;
+            List<CodeCatalog> CodeCatalogList = new List<CodeCatalog>();
             using (ExcelPackage doc = new ExcelPackage())
             {
                 ExcelWorksheet sheet = doc.Workbook.Worksheets.Add("Sheet1");
-                MTR_Catalog.Header(sheet, MaterialCatalog);
 
-                for(int i = 1; i <= 18; i++)
+                    FormBD(sheet, MaterialCatalog);
+                
+                    CodeCatalogList = MTR_Catalog.Header(sheet, MaterialCatalog);
+
+                for(int i = 1; i <= 22; i++)
                 {
                     if (i == 4)
                     {
@@ -81,6 +101,221 @@ namespace CollisionFinder
                 doc.SaveAs(fi);
                 doc.Dispose();
             }
+
+            
+
+        }
+
+        public static void FormBD(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
+        {
+            int MaterialIDCount = 0;
+            var CodeCatalogList = new List<CodeCatalog>();
+
+
+            var group = MtrCatalogList
+                .Select(u => new
+                {
+                    groupName = u.GroupName,
+                    groupCode = u.GroupCode,
+                    groupCodeClass = u.NaimCodeClass
+                }
+                ).GroupBy(s => s.groupCode).Distinct();
+            foreach(var t0 in group)
+            {
+                var ngroup = t0
+                    .Distinct();
+                CreateMaterialGroup(ngroup);
+            }
+            var ShortNameGroup = MtrCatalogList
+        .GroupBy(s => s.MaterialFullName);
+            foreach (var s0 in ShortNameGroup)
+            {
+                var NameGroup = s0
+                .GroupBy(s => s.MaterialName);
+                foreach (var s1 in NameGroup)
+                {
+                    DB.Material _material = new DB.Material();
+                    _material.ID = MaterialIDCount;
+                    MaterialIDCount++;
+                    _material.Material_fullname = s0.Key;
+                    _material.Material_name = s1.Key;
+
+                    var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
+                    if (difCode.Count > 1)
+                    {
+                        int i = 2 + 2;
+                    }
+                    CodeCatalog cc = new CodeCatalog();
+
+                    cc.Name = s1.Key;
+                    cc.BaseCode = difCode[0]; // TMP
+                    cc.AltCode = difCode;
+                    _material.Basic_code = cc.BaseCode;
+                    CodeCatalogList.Add(cc);
+
+                    CreateMaterialCode(_material, cc);
+
+                    double sumB = 0;
+                    double sumA = 0;
+                    double countB, countA;
+                    double priceB, priceA;            
+
+                    var gg = s1
+                        .OrderBy(s => s.MaterialCode);
+                    foreach (var s2 in gg)
+                    {
+
+                        //if (Double.TryParse(s2.BasisMUCount, out countB) && Double.TryParse(s2.BasisMUPrice, out priceB))
+                        //{
+                        //    sumB += (countB * priceB);
+                        //}
+
+                        //if (Double.TryParse(s2.AltMUCount, out countA) && Double.TryParse(s2.AltMUPrice, out priceA))
+                        //{
+                        //    sumA += (countA * priceA);
+                        //}
+                        CreateCustomHistory(_material, s2);
+                        
+                    }
+                    materialDB.Add(_material);
+                }
+            }
+            //bbb(MtrCatalogList);
+            BDExcelOutput();
+        }
+
+        static void BDExcelOutput()
+        {
+            string fileName = @"C:\Users\Alex\Desktop\БД.xlsx";
+            using (ExcelPackage doc = new ExcelPackage())
+            {
+                ExcelWorksheet sheet1 = doc.Workbook.Worksheets.Add("Material");
+                int n = 2;
+                foreach(var s in materialDB)
+                {
+                    sheet1.Cells[n, 1].Value = s.ID;
+                    sheet1.Cells[n, 2].Value = s.Basic_code;
+                    sheet1.Cells[n, 3].Value = s.IsHide;
+                    sheet1.Cells[n, 4].Value = s.Material_name;
+                    sheet1.Cells[n, 5].Value = s.Material_fullname;
+                    sheet1.Cells[n, 6].Value = "";
+                    n++;
+                }
+                ExcelWorksheet sheet2 = doc.Workbook.Worksheets.Add("History");
+                n = 2;
+                foreach (var s in customHistoryDB)
+                {
+                    sheet2.Cells[n, 1].Value = s.ID;
+                    sheet2.Cells[n, 2].Value = s.Material_ID;
+                    sheet2.Cells[n, 3].Value = s.Shipment_date;
+                    sheet2.Cells[n, 4].Value = s.Consignee_detail;
+                    sheet2.Cells[n, 5].Value = s.Basis_measure_unit;
+                    sheet2.Cells[n, 6].Value = s.Count_BMU;
+                    sheet2.Cells[n, 7].Value = s.Shipment_price_BMU;
+                    sheet2.Cells[n, 8].Value = s.Alt_measure_unit;
+                    sheet2.Cells[n, 9].Value = s.Count_AMU;
+                    sheet2.Cells[n, 10].Value = s.Shipment_price_AMU;
+                    n++;
+                }
+                ExcelWorksheet sheet3 = doc.Workbook.Worksheets.Add("Code");
+                n = 2;
+                foreach (var s in materialCodeDB)
+                {
+                    sheet3.Cells[n, 1].Value = s.ID;
+                    sheet3.Cells[n, 2].Value = s.Material_ID;
+                    sheet3.Cells[n, 3].Value = s.Alternative_code;
+                    sheet3.Cells[n, 4].Value = s.Basic_code;
+                    n++;
+                }
+                ExcelWorksheet sheet4 = doc.Workbook.Worksheets.Add("MGroup");
+                n = 2;
+                foreach (var s in materialGroupDB)
+                {
+                    sheet4.Cells[n, 1].Value = s.ID;
+                    sheet4.Cells[n, 2].Value = s.Group_name;
+                    sheet4.Cells[n, 3].Value = s.Group_code;
+                    sheet4.Cells[n, 4].Value = s.Group_class_name;
+                    n++;
+                }
+                FileInfo fi = new FileInfo(fileName);
+
+                doc.SaveAs(fi);
+                doc.Dispose();
+            }
+        }
+
+        static void GroupPrepareBD(List<MTR_Catalog> catalogs)
+        {
+            for (int i = 0; i < materialGroupDB.Count; i++)
+            {
+                var m = catalogs
+                    .Where(u => u.GroupName == materialGroupDB[i].Group_name)
+                    .Where(u => u.GroupCode == materialGroupDB[i].Group_code)
+                    .Where(u => u.NaimCodeClass == materialGroupDB[i].Group_class_name)
+                    .ToList();
+                for(int j = 0; j < m.Count; j++)
+                {
+                    DB.Material material = new DB.Material();
+                }
+            }
+        }
+        
+        static T Cast<T>(object obj, T type)
+        {
+            return (T)obj;
+        }
+
+        private static void CreateMaterialGroup(IEnumerable<object> ngroup)
+        {
+            foreach(var s in ngroup)
+            {
+                DB.MaterialGroup _Group = new DB.MaterialGroup();
+                _Group.ID = materialGroupDB.Count();
+                var tt = Cast(s, new {groupName = "", groupCode = "", groupCodeClass = "" });
+                _Group.Group_name = tt.groupName;
+                _Group.Group_code = tt.groupCode;
+                _Group.Group_class_name = tt.groupCodeClass;
+                materialGroupDB.Add(_Group);
+            }
+        }
+      
+        public static void CreateMaterialCode(DB.Material material, CodeCatalog codeCatalog)
+        {
+            foreach(var s in codeCatalog.AltCode)
+            {
+                DB.Material_code _Code = new DB.Material_code();
+                _Code.Material_ID = material.ID;
+                _Code.Basic_code = codeCatalog.BaseCode;
+                _Code.Alternative_code = s;
+                _Code.ID = materialCodeDB.Count;
+                materialCodeDB.Add(_Code);
+            }
+        }
+
+        public static void CreateCustomHistory(DB.Material material, MTR_Catalog catalog)
+        {
+            double countA, countB, priceA, priceB; 
+            DB.Custom_history _History = new DB.Custom_history();
+            _History.Material_ID = material.ID;
+            _History.Shipment_date = catalog.DeliveryDate;
+            _History.Consignee_detail = catalog.ConsigneeDetail;
+
+            _History.Basis_measure_unit = catalog.BasisMU;
+            Double.TryParse(catalog.BasisMUCount, out countB);
+            _History.Count_BMU = countB;
+            Double.TryParse(catalog.BasisMUPrice, out priceB);
+            _History.Shipment_price_BMU = priceB;
+
+            _History.Alt_measure_unit = catalog.AltMU;
+            Double.TryParse(catalog.AltMUCount, out countA);
+            _History.Count_AMU = countA;
+            Double.TryParse(catalog.AltMUPrice, out priceA);
+            _History.Shipment_price_AMU = priceA;
+
+            _History.Material = material;
+            _History.ID = customHistoryDB.Count;
+            customHistoryDB.Add(_History);
+        
         }
 
         ////static void TestProgram() // тестирование программы

@@ -283,9 +283,18 @@ namespace CollisionFinder
 
                                 AltMUCount = sheet.Cells[i, ml.AltMUCountCol].Value.ToString(),
 
-                                AltMUPrice = sheet.Cells[i, ml.AltMUPriceCol].Value.ToString()
+                                AltMUPrice = sheet.Cells[i, ml.AltMUPriceCol].Value.ToString(),
+
+                                SPPName = sheet.Cells[i, ml.SPPNameCol].Value.ToString(),
+
+                                SPPElem = sheet.Cells[i, ml.SPPElemCol].Value.ToString(),
+
+                                OKPD2 = sheet.Cells[i, ml.OKPD2Col].Value.ToString(),
+
+                                OKPD2Code = sheet.Cells[i, ml.OKPD2CodeCol].Value.ToString()
                             };
                             tmp_MTRCatalogList.Add(tmp);
+
                         }
                         mtrList.AddRange(tmp_MTRCatalogList);
                         doc.Dispose();

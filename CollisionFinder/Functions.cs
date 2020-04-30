@@ -76,5 +76,10 @@ namespace CollisionFinder
         {
 
         }
+
+        public static void DateCompire()
+        {
+
+        }
     }
 }

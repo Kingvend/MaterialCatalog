@@ -95,13 +95,21 @@ namespace CollisionFinder
         /// </summary>
         public string AltMUPrice { get; set; }
 
+        public bool OrangeStatus { get; set; }
 
-        // MTR TO UER
+        public string SPPName { get; set; }
 
-        //TO DO    
+        public string SPPElem { get; set; }
 
-        public static void Header(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
+        public string OKPD2 { get; set; }
+
+        public string OKPD2Code { get; set; }
+
+        public static List<CodeCatalog> Header(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
         {
+            Dictionary<string, int> Full = new Dictionary<string, int>();
+            Dictionary<string, bool> Short = new Dictionary<string, bool>();
+
             sheet.Cells[1, 1].Value = "СПРАВОЧНИК МТР";
             sheet.Cells[1, 1, 1, 8].Merge = true;
 
@@ -136,28 +144,96 @@ namespace CollisionFinder
             sheet.Cells[2, 17].Value = "Сумма по базисным ЕИ";
             sheet.Cells[2, 18].Value = "Сумма по альтернативным ЕИ";
 
-            int numRow = 4;
+            sheet.Cells[2, 19].Value = "СПП имя";
+            sheet.Cells[2, 20].Value = "СПП код";
+            sheet.Cells[2, 21].Value = "код по ОКПД2";
+            sheet.Cells[2, 22].Value = "ОКПД2";
+
+            //пометка данных с коллизией
+            var numRow = 4;
 
             var ShortNameGroup = MtrCatalogList
                 .GroupBy(s => s.MaterialFullName);
-            foreach(var s0 in ShortNameGroup)
+            foreach (var s0 in ShortNameGroup)
             {
+                Full.Add(s0.Key, 0);
                 var NameGroup = s0
                 .GroupBy(s => s.MaterialName);
+                numRow++;
+                foreach (var s1 in NameGroup)
+                {
+                    if(!Short.ContainsKey(s1.Key))
+                    Short.Add(s1.Key, false);
+                    int header_1_Row = numRow;
+
+                    double sumB = 0;
+                    double sumA = 0;
+                    double countB, countA;
+                    double priceB, priceA;
+                    //bool IsOrange = false;
+
+                    //sheet.Cells[numRow, 3].Value = s1.Key.ToString();
+
+
+
+                    var tt = s1
+                       .Select(s => s.MaterialCode)
+                       .Distinct()
+                       .Count();
+                    if (tt > 1)
+                    {
+                        //sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        //sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Orange);
+                        Full[s0.Key]++;
+                        Short[s1.Key] = true;
+                    }
+                    else
+                    {
+                        //sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        //sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Green);
+                    }
+                }
+            }
+            //
+
+            /*var*/ numRow = 4;
+            var CodeCatalogList = new List<CodeCatalog>();
+
+            /*var*/ ShortNameGroup = MtrCatalogList
+                .GroupBy(s => s.MaterialFullName);
+            foreach(var s0 in ShortNameGroup)
+            {
+                //if (Full[s0.Key] == 0) continue;
                 sheet.Cells[numRow, 4].Value = s0.Key.ToString();
                 sheet.Cells[numRow, 4].Style.WrapText = true;
                 numRow++;
+
+                var NameGroup = s0
+                .GroupBy(s => s.MaterialName);              
                 foreach (var s1 in NameGroup)
-                {                
+                {
+                    var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
+                    if(difCode.Count > 1 )
+                    {
+                        int i = 2 + 2;
+                    }
+                    CodeCatalog cc = new CodeCatalog();
+
+                    cc.Name = s1.Key;
+                    cc.BaseCode = "";
+                    cc.AltCode = difCode;
+                    CodeCatalogList.Add(cc);
                     int header_1_Row = numRow;
                   
                     double sumB = 0;
                     double sumA = 0;
                     double countB, countA;
                     double priceB, priceA;
+                    bool IsOrange = false;
 
+                    //if (Short[s1.Key] == false) continue;
                     sheet.Cells[numRow, 3].Value = s1.Key.ToString();
-
+                 
                     var tt = s1
                        .Select(s => s.MaterialCode)
                        .Distinct()
@@ -169,10 +245,11 @@ namespace CollisionFinder
                     }
                     else
                     {
+                        //continue;
                         sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Green);
                     }
-
+                                           
                     var gg = s1
                         .OrderBy(s => s.MaterialCode);
                     foreach (var s2 in gg)
@@ -198,6 +275,12 @@ namespace CollisionFinder
                         sheet.Cells[numRow, 14].Value = s2.AltMU;
                         sheet.Cells[numRow, 15].Value = s2.AltMUCount;
                         sheet.Cells[numRow, 16].Value = s2.AltMUPrice;
+
+                        sheet.Cells[numRow, 19].Value = s2.SPPName;
+                        sheet.Cells[numRow, 20].Value = s2.SPPElem;
+                        sheet.Cells[numRow, 21].Value = s2.OKPD2Code;
+                        sheet.Cells[numRow, 22].Value = s2.OKPD2;
+
                         if (Double.TryParse(s2.AltMUCount, out countA) && Double.TryParse(s2.AltMUPrice, out priceA))
                         {
                             sumA += (countA * priceA);
@@ -226,11 +309,11 @@ namespace CollisionFinder
                         {
                             sheet.Row(i).OutlineLevel = 1;
                             sheet.Row(i).Collapsed = true;
-                        }
-                       
+                        }                      
                     }
                 }
-            }           
+            }
+            return CodeCatalogList;
         }
     }
 }

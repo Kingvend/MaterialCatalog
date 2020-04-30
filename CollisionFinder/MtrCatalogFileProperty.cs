@@ -102,6 +102,14 @@ namespace CollisionFinder
         /// </summary>
         public int AltMUPriceCol { get; set; }
 
+        public int SPPNameCol { get; set; }
+
+        public int SPPElemCol { get; set; }
+
+        public int OKPD2Col { get; set; }
+
+        public int OKPD2CodeCol { get; set; }
+
         public MtrCatalogFileProperty FindColumns(ref ExcelWorksheet sheet, MtrCatalogFileProperty tt)
         {
             var ans = tt;
@@ -249,11 +257,44 @@ namespace CollisionFinder
                     break;
                 }
             }
-          
-            return ans;
-        }
-        // MTR TO UER
 
-        //TO DO    
+            for (int i = 1; i <= _find_size; i++)
+            {
+                if (sheet.Cells[1, i].Value.ToString() == "СПП имя")
+                {
+                    ans.SPPNameCol = i;
+                    break;
+                }
+            }
+
+            for (int i = 1; i <= _find_size; i++)
+            {
+                if (sheet.Cells[1, i].Value.ToString() == "СПП элемент")
+                {
+                    ans.SPPElemCol = i;
+                    break;
+                }
+            }
+
+            for (int i = 1; i <= _find_size; i++)
+            {
+                if (sheet.Cells[1, i].Value.ToString() == "ОКПД2")
+                {
+                    ans.OKPD2Col = i;
+                    break;
+                }
+            }
+
+            for (int i = 1; i <= _find_size; i++)
+            {
+                if (sheet.Cells[1, i].Value.ToString() == "Код по ОКПД2")
+                {
+                    ans.OKPD2CodeCol = i;
+                    break;
+                }
+            }
+
+            return ans;
+        }        
     }
 }
