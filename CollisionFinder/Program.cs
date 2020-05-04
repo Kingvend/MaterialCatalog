@@ -1,6 +1,12 @@
+using FluentNHibernate.Cfg;
+using FluentNHibernate.Cfg.Db;
+using NHibernate;
+using NHibernate.Tool.hbm2ddl;
+using NHibernate.Cfg;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 
@@ -11,10 +17,12 @@ namespace CollisionFinder
 
     class Program
     {
+        private const string DbFile = "firstProgram.db";
+
         public static List<DB.Material> materialDB = new List<DB.Material>();
         public static List<DB.MaterialGroup> materialGroupDB = new List<DB.MaterialGroup>();
-        public static List<DB.Material_code> materialCodeDB = new List<DB.Material_code>();
-        public static List<DB.Custom_history> customHistoryDB = new List<DB.Custom_history>();
+        public static List<DB.MaterialCode> materialCodeDB = new List<DB.MaterialCode>();
+        public static List<DB.CustomHistory> customHistoryDB = new List<DB.CustomHistory>();
      
         static void Main(string[] args)
         {
@@ -101,16 +109,12 @@ namespace CollisionFinder
                 doc.SaveAs(fi);
                 doc.Dispose();
             }
-
-            
-
         }
 
         public static void FormBD(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
         {
             int MaterialIDCount = 0;
             var CodeCatalogList = new List<CodeCatalog>();
-
 
             var group = MtrCatalogList
                 .Select(u => new
@@ -135,16 +139,28 @@ namespace CollisionFinder
                 foreach (var s1 in NameGroup)
                 {
                     DB.Material _material = new DB.Material();
-                    _material.ID = MaterialIDCount;
+                    //_material.CustomHistory = new List<DB.Custom_history>();
+                    //_material.MaterialCode = new List<DB.Material_code>();
+                    //_material.ID = MaterialIDCount; // for NHibernate
                     MaterialIDCount++;
                     _material.Material_fullname = s0.Key;
                     _material.Material_name = s1.Key;
-
-                    var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
-                    if (difCode.Count > 1)
+                
+                    foreach(var s2 in s1)
                     {
-                        int i = 2 + 2;
+                        var FindGroup = materialGroupDB
+                            .Where(u => u.Group_class_name == s2.NaimCodeClass)
+                            .Where(u => u.Group_code == s2.GroupCode)
+                            .Where(u => u.Group_name == s2.GroupName)
+                            .ToList();
+                        FindGroup[0].Material.Add(_material);
+                        //_material.Material_group_ID = FindGroup[0].ID; // может даже убрать
+                        _material.MaterialGroup = FindGroup[0];
+                        break;
                     }
+
+                    // формируются коды
+                    var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
                     CodeCatalog cc = new CodeCatalog();
 
                     cc.Name = s1.Key;
@@ -152,36 +168,20 @@ namespace CollisionFinder
                     cc.AltCode = difCode;
                     _material.Basic_code = cc.BaseCode;
                     CodeCatalogList.Add(cc);
+                    CreateMaterialCode(ref _material, cc);
 
-                    CreateMaterialCode(_material, cc);
-
-                    double sumB = 0;
-                    double sumA = 0;
-                    double countB, countA;
-                    double priceB, priceA;            
-
+                    // формируется история
                     var gg = s1
                         .OrderBy(s => s.MaterialCode);
                     foreach (var s2 in gg)
                     {
-
-                        //if (Double.TryParse(s2.BasisMUCount, out countB) && Double.TryParse(s2.BasisMUPrice, out priceB))
-                        //{
-                        //    sumB += (countB * priceB);
-                        //}
-
-                        //if (Double.TryParse(s2.AltMUCount, out countA) && Double.TryParse(s2.AltMUPrice, out priceA))
-                        //{
-                        //    sumA += (countA * priceA);
-                        //}
-                        CreateCustomHistory(_material, s2);
-                        
+                        CreateCustomHistory(ref _material, s2);                       
                     }
                     materialDB.Add(_material);
                 }
             }
-            //bbb(MtrCatalogList);
-            BDExcelOutput();
+            NHibernateWork();
+            //BDExcelOutput(); вывод базы в excel
         }
 
         static void BDExcelOutput()
@@ -190,7 +190,7 @@ namespace CollisionFinder
             using (ExcelPackage doc = new ExcelPackage())
             {
                 ExcelWorksheet sheet1 = doc.Workbook.Worksheets.Add("Material");
-                int n = 2;
+                int n = 1;
                 foreach(var s in materialDB)
                 {
                     sheet1.Cells[n, 1].Value = s.ID;
@@ -202,11 +202,11 @@ namespace CollisionFinder
                     n++;
                 }
                 ExcelWorksheet sheet2 = doc.Workbook.Worksheets.Add("History");
-                n = 2;
+                n = 1;
                 foreach (var s in customHistoryDB)
                 {
                     sheet2.Cells[n, 1].Value = s.ID;
-                    sheet2.Cells[n, 2].Value = s.Material_ID;
+                    //sheet2.Cells[n, 2].Value = s.Material_ID;
                     sheet2.Cells[n, 3].Value = s.Shipment_date;
                     sheet2.Cells[n, 4].Value = s.Consignee_detail;
                     sheet2.Cells[n, 5].Value = s.Basis_measure_unit;
@@ -218,17 +218,17 @@ namespace CollisionFinder
                     n++;
                 }
                 ExcelWorksheet sheet3 = doc.Workbook.Worksheets.Add("Code");
-                n = 2;
+                n = 1;
                 foreach (var s in materialCodeDB)
                 {
                     sheet3.Cells[n, 1].Value = s.ID;
-                    sheet3.Cells[n, 2].Value = s.Material_ID;
+                    //sheet3.Cells[n, 2].Value = s.Material_ID;
                     sheet3.Cells[n, 3].Value = s.Alternative_code;
                     sheet3.Cells[n, 4].Value = s.Basic_code;
                     n++;
                 }
                 ExcelWorksheet sheet4 = doc.Workbook.Worksheets.Add("MGroup");
-                n = 2;
+                n = 1;
                 foreach (var s in materialGroupDB)
                 {
                     sheet4.Cells[n, 1].Value = s.ID;
@@ -270,7 +270,8 @@ namespace CollisionFinder
             foreach(var s in ngroup)
             {
                 DB.MaterialGroup _Group = new DB.MaterialGroup();
-                _Group.ID = materialGroupDB.Count();
+                //_Group.Material = new List<DB.Material>();
+                //_Group.ID = materialGroupDB.Count(); // for NHibernate
                 var tt = Cast(s, new {groupName = "", groupCode = "", groupCodeClass = "" });
                 _Group.Group_name = tt.groupName;
                 _Group.Group_code = tt.groupCode;
@@ -279,24 +280,31 @@ namespace CollisionFinder
             }
         }
       
-        public static void CreateMaterialCode(DB.Material material, CodeCatalog codeCatalog)
+        public static void CreateMaterialCode(ref DB.Material material, CodeCatalog codeCatalog)
         {
+            //material.MaterialCode = new List<DB.Material_code>();
             foreach(var s in codeCatalog.AltCode)
             {
-                DB.Material_code _Code = new DB.Material_code();
-                _Code.Material_ID = material.ID;
+                DB.MaterialCode _Code = new DB.MaterialCode();
+                //_Code.Material_ID = material.ID;
                 _Code.Basic_code = codeCatalog.BaseCode;
                 _Code.Alternative_code = s;
-                _Code.ID = materialCodeDB.Count;
+                //_Code.ID = materialCodeDB.Count; //for NHibernate
+                _Code.Material = material; // new edit
                 materialCodeDB.Add(_Code);
+
+                // обратная привязка
+                material.MaterialCode.Add(_Code);
             }
         }
 
-        public static void CreateCustomHistory(DB.Material material, MTR_Catalog catalog)
+        public static void CreateCustomHistory(ref DB.Material material, MTR_Catalog catalog)
         {
+            //material.CustomHistory = new List<DB.Custom_history>();
+
             double countA, countB, priceA, priceB; 
-            DB.Custom_history _History = new DB.Custom_history();
-            _History.Material_ID = material.ID;
+            DB.CustomHistory _History = new DB.CustomHistory();
+            //_History.Material_ID = material.ID;
             _History.Shipment_date = catalog.DeliveryDate;
             _History.Consignee_detail = catalog.ConsigneeDetail;
 
@@ -313,263 +321,307 @@ namespace CollisionFinder
             _History.Shipment_price_AMU = priceA;
 
             _History.Material = material;
-            _History.ID = customHistoryDB.Count;
+            //_History.ID = customHistoryDB.Count; // for NHibernate
             customHistoryDB.Add(_History);
+            material.CustomHistory.Add(_History);
         
         }
 
-        ////static void TestProgram() // тестирование программы
-        ////{
-        ////    List<Group> MainList = new List<Group>(); // список всех групп
+        static void NHibernateWork()
+        {
+            var sessionFactory = CreateSessionFactory();
+            using (var session = sessionFactory.OpenSession())
+            {
+                using (var transaction = session.BeginTransaction())
+                {
+                    foreach(var obj in materialGroupDB)
+                    {
+                        session.SaveOrUpdate(obj);
+                    }
+                    transaction.Commit();
+                }
+            }
+        }
 
-        ////    var grouped = materialList.GroupBy(s => PrepareString(s));
+        private static ISessionFactory CreateSessionFactory()
+        {
+            var connectionStr = "Server=127.0.0.1;Port=5432;Database=MtrCatalog;User Id=postgres;Password=123456;";
+            return Fluently.Configure()
+              .Database(
+                PostgreSQLConfiguration.Standard.ConnectionString(connectionStr))
+              .Mappings(m => m.FluentMappings.AddFromAssemblyOf<Program>())
+              //.ExposeConfiguration(cfg => { new SchemaExport(cfg).Create(false, true);})
+              .ExposeConfiguration(BuildSchema)
+              .BuildSessionFactory();
+        }
+
+        private static void BuildSchema(NHibernate.Cfg.Configuration config)
+        {
+            #region tutor
+            // delete the existing db on each run
+            if (File.Exists(DbFile))
+                File.Delete(DbFile);
+
+            // this NHibernate tool takes a configuration (with mapping info in)
+            // and exports a database schema from it
+            new SchemaExport(config)
+              .Create(false, true);
+            #endregion
+
+        }
+
+            ////static void TestProgram() // тестирование программы
+            ////{
+            ////    List<Group> MainList = new List<Group>(); // список всех групп
+
+            ////    var grouped = materialList.GroupBy(s => PrepareString(s));
 
 
-        ////    foreach (var grp in grouped)
-        ////    {
-        ////        var item = grp;
-        ////    }
+            ////    foreach (var grp in grouped)
+            ////    {
+            ////        var item = grp;
+            ////    }
 
-        ////    bool flag = true;
-        ////    string b;
-        ////    while (flag)
-        ////    {
-        ////        b = Console.ReadLine(); // получение новой строки
-        ////        if (b.Length == 0)
-        ////        {
-        ////            flag = false;
-        ////        }
-        ////        if (b == "1")
-        ////        {
-        ////            Output(MainList);
-        ////        }
-        ////        else
-        ////        {
-        ////            if (b == "2")
-        ////            {
-        ////                foreach (var l in materialList)
-        ////                {
-        ////                    if (MainList.Count == 0)
-        ////                    {
-        ////                        AddNewNote(l, ref MainList);
-        ////                    }
-        ////                    else
-        ////                    {
-        ////                        if (IsStringExiting(l, ref MainList))
-        ////                        {
-        ////                            Console.WriteLine("Строка существует! число увеличено");
-        ////                        }
-        ////                        else
-        ////                        {
-        ////                            CompaireByGroups(4, l, MainList);
-        ////                            //сравнение с группами
+            ////    bool flag = true;
+            ////    string b;
+            ////    while (flag)
+            ////    {
+            ////        b = Console.ReadLine(); // получение новой строки
+            ////        if (b.Length == 0)
+            ////        {
+            ////            flag = false;
+            ////        }
+            ////        if (b == "1")
+            ////        {
+            ////            Output(MainList);
+            ////        }
+            ////        else
+            ////        {
+            ////            if (b == "2")
+            ////            {
+            ////                foreach (var l in materialList)
+            ////                {
+            ////                    if (MainList.Count == 0)
+            ////                    {
+            ////                        AddNewNote(l, ref MainList);
+            ////                    }
+            ////                    else
+            ////                    {
+            ////                        if (IsStringExiting(l, ref MainList))
+            ////                        {
+            ////                            Console.WriteLine("Строка существует! число увеличено");
+            ////                        }
+            ////                        else
+            ////                        {
+            ////                            CompaireByGroups(4, l, MainList);
+            ////                            //сравнение с группами
 
-        ////                        }
-        ////                    }
-        ////                }
-        ////            }
-        ////            else
-        ////            {
-        ////                if (MainList.Count == 0)
-        ////                {
-        ////                    AddNewNote(b, ref MainList);
-        ////                }
-        ////                else
-        ////                {
-        ////                    if (IsStringExiting(b, ref MainList))
-        ////                    {
-        ////                        Console.WriteLine("Строка существует! число увеличено");
-        ////                    }
-        ////                    else
-        ////                    {
-        ////                        CompaireByGroups(4, b, MainList);
-        ////                    }
-        ////                }
-        ////            }
-        ////        }
-        ////    }
-        ////}
-        //private static string PrepareString(string s)
-        //{
-        //    var result = s.ToLower().Split(' ');
-        //    return result[0];
-        //}
-        ///// <summary>
-        ///// тестовая функция вывода группировки по наименованию материала 
-        ///// </summary>
-        ///// <param name="MainList"></param>
-        //static void Output(List<Group> MainList)
-        //{
-        //    Console.WriteLine("--------------------------------------------");
-        //    Console.WriteLine("Список групп");
-        //    for (int i = 0; i < MainList.Count; i++)
-        //    {
-        //        Console.WriteLine("--------------------------------------------");
-        //        Console.Write("Группа №{0} ", i + 1);
-        //        Console.WriteLine("число различных вариаций: {0}", MainList[i].StringInGroup.Count);
-        //        Console.WriteLine("Имя: {0}", MainList[i].AverageNote.OriginalString);
-        //        Console.WriteLine();
-        //        for (int j = 0; j < MainList[i].StringInGroup.Count; j++)
-        //        {
-        //            Console.WriteLine("\t" + MainList[i].StringInGroup[j].OriginalString);
-        //            Console.WriteLine("\t\tЧисло повторений:" + MainList[i].StringInGroup[j].CountStringInNote);
-        //        }
-        //    }
-        //    Console.WriteLine("--------------------------------------------");
-        //}
-        //static void AddNewNote(string NewString, ref List<Group> MainList) // добавление новой записи в главный список + (пополнение числа однотипных)
-        //{
-        //    Group tmp_group = new Group
-        //    {
-        //        StringInGroup = new List<Note>()
-        //    };
-        //    Note tmp_note = new Note
-        //    {
-        //        OriginalString = NewString,
+            ////                        }
+            ////                    }
+            ////                }
+            ////            }
+            ////            else
+            ////            {
+            ////                if (MainList.Count == 0)
+            ////                {
+            ////                    AddNewNote(b, ref MainList);
+            ////                }
+            ////                else
+            ////                {
+            ////                    if (IsStringExiting(b, ref MainList))
+            ////                    {
+            ////                        Console.WriteLine("Строка существует! число увеличено");
+            ////                    }
+            ////                    else
+            ////                    {
+            ////                        CompaireByGroups(4, b, MainList);
+            ////                    }
+            ////                }
+            ////            }
+            ////        }
+            ////    }
+            ////}
+            //private static string PrepareString(string s)
+            //{
+            //    var result = s.ToLower().Split(' ');
+            //    return result[0];
+            //}
+            ///// <summary>
+            ///// тестовая функция вывода группировки по наименованию материала 
+            ///// </summary>
+            ///// <param name="MainList"></param>
+            //static void Output(List<Group> MainList)
+            //{
+            //    Console.WriteLine("--------------------------------------------");
+            //    Console.WriteLine("Список групп");
+            //    for (int i = 0; i < MainList.Count; i++)
+            //    {
+            //        Console.WriteLine("--------------------------------------------");
+            //        Console.Write("Группа №{0} ", i + 1);
+            //        Console.WriteLine("число различных вариаций: {0}", MainList[i].StringInGroup.Count);
+            //        Console.WriteLine("Имя: {0}", MainList[i].AverageNote.OriginalString);
+            //        Console.WriteLine();
+            //        for (int j = 0; j < MainList[i].StringInGroup.Count; j++)
+            //        {
+            //            Console.WriteLine("\t" + MainList[i].StringInGroup[j].OriginalString);
+            //            Console.WriteLine("\t\tЧисло повторений:" + MainList[i].StringInGroup[j].CountStringInNote);
+            //        }
+            //    }
+            //    Console.WriteLine("--------------------------------------------");
+            //}
+            //static void AddNewNote(string NewString, ref List<Group> MainList) // добавление новой записи в главный список + (пополнение числа однотипных)
+            //{
+            //    Group tmp_group = new Group
+            //    {
+            //        StringInGroup = new List<Note>()
+            //    };
+            //    Note tmp_note = new Note
+            //    {
+            //        OriginalString = NewString,
 
-        //        ChangedString = NewChangeString(NewString),
-        //        CountStringInNote = 1
-        //    };
-        //    tmp_group.StringInGroup.Add(tmp_note);
-        //    tmp_group.AverageNote = tmp_note;
-        //    MainList.Add(tmp_group);
-        //}
+            //        ChangedString = NewChangeString(NewString),
+            //        CountStringInNote = 1
+            //    };
+            //    tmp_group.StringInGroup.Add(tmp_note);
+            //    tmp_group.AverageNote = tmp_note;
+            //    MainList.Add(tmp_group);
+            //}
 
-        //static bool IsStringExiting(string s, ref List<Group> MainList)  // проверка наличия данной строки в списке + increment
-        //{
-        //    bool status = false;
+            //static bool IsStringExiting(string s, ref List<Group> MainList)  // проверка наличия данной строки в списке + increment
+            //{
+            //    bool status = false;
 
-        //    for (var i = 0; i < MainList.Count; i++)
-        //    {
-        //        for (var j = 0; j < MainList[i].StringInGroup.Count; j++)
-        //        {
-        //            if (s == MainList[i].StringInGroup[j].OriginalString)
-        //            {
-        //                Note tmp = new Note
-        //                {
-        //                    OriginalString = MainList[i].StringInGroup[j].OriginalString,
-        //                    ChangedString = MainList[i].StringInGroup[j].ChangedString,
-        //                    CountStringInNote = MainList[i].StringInGroup[j].CountStringInNote + 1
-        //                };
-        //                MainList[i].StringInGroup[j] = tmp;
+            //    for (var i = 0; i < MainList.Count; i++)
+            //    {
+            //        for (var j = 0; j < MainList[i].StringInGroup.Count; j++)
+            //        {
+            //            if (s == MainList[i].StringInGroup[j].OriginalString)
+            //            {
+            //                Note tmp = new Note
+            //                {
+            //                    OriginalString = MainList[i].StringInGroup[j].OriginalString,
+            //                    ChangedString = MainList[i].StringInGroup[j].ChangedString,
+            //                    CountStringInNote = MainList[i].StringInGroup[j].CountStringInNote + 1
+            //                };
+            //                MainList[i].StringInGroup[j] = tmp;
 
-        //                Group RefOnGroup = MainList[i];
-        //                UpdateAverageString(MainList[i].StringInGroup[j], ref RefOnGroup);
+            //                Group RefOnGroup = MainList[i];
+            //                UpdateAverageString(MainList[i].StringInGroup[j], ref RefOnGroup);
 
-        //                status = true;
-        //                return status;
-        //            }
-        //        }
-        //    }
-        //    return status;
-        //}
-        //static Note FindAverageString(ref Group ln) // поиск среднего значения группы
-        //{
-        //    Note AnsNote = ln.AverageNote;
-        //    int Max = -1;
+            //                status = true;
+            //                return status;
+            //            }
+            //        }
+            //    }
+            //    return status;
+            //}
+            //static Note FindAverageString(ref Group ln) // поиск среднего значения группы
+            //{
+            //    Note AnsNote = ln.AverageNote;
+            //    int Max = -1;
 
-        //    for (int i = 0; i < ln.StringInGroup.Count; i++)
-        //    {
-        //        if (ln.StringInGroup[i].CountStringInNote > Max)
-        //        {
-        //            AnsNote = ln.StringInGroup[i];
-        //            Max = ln.StringInGroup[i].CountStringInNote;
-        //        }
-        //    }
-        //    return AnsNote;
-        //}
-        //static void UpdateAverageString(Note n, ref Group g) // обновление усредненной записи
-        //{
-        //    if (n.CountStringInNote > g.AverageNote.CountStringInNote)
-        //    {
-        //        g.AverageNote = n;
-        //    }
-        //}
-        //static void CompaireByGroups(int MaxSubStr, string NewString, List<Group> MainList) // сравнение по группам
-        //{
-        //    double Max = -1;
-        //    int iter = 0;
-        //    string iter_string = "";
-        //    for (int i = 0; i < MainList.Count; i++)
-        //    {
-        //        double tmp_max = IndistinctMatching(MaxSubStr, NewChangeString(NewString), MainList[i].AverageNote.ChangedString);
-        //        if (tmp_max > Max)
-        //        {
-        //            Max = tmp_max;
-        //            iter = i;
-        //            iter_string = MainList[i].AverageNote.OriginalString;
-        //        }
-        //    }
-        //    //Console.WriteLine("--------------------------------------------");
-        //    //Console.WriteLine("Анализ группы");
-        //    //Console.WriteLine("Наиболшее совпадение с новой строкой имеет запись {0}: {1}: {2}% совпадения",iter, iter_string, Max);
-        //    //Console.WriteLine("--------------------------------------------");
-        //    if (Max < 90)
-        //    {
-        //        AddNewNote(NewString, ref MainList);
-        //    }
-        //    else
-        //    {
-        //        Note tmp = new Note
-        //        {
-        //            OriginalString = NewString,
-        //            ChangedString = NewChangeString(NewString),
-        //            CountStringInNote = 1
-        //        };
-        //        MainList[iter].StringInGroup.Add(tmp);
-        //    }
-        //}
-        //static RetCount Matching(string strInputA, string strInputB, int lngLen)
-        //{
-        //    RetCount TempRet = new RetCount();
-        //    int PosStrA;
-        //    int PosStrB;
-        //    string strTempA;
-        //    string strTempB;
-        //    TempRet.lngCountLike = 0;
-        //    TempRet.lngSubRows = 0;
-        //    for (PosStrA = 0; PosStrA <= strInputA.Length - lngLen; PosStrA++)
-        //    {
-        //        strTempA = strInputA.Substring(PosStrA, lngLen);
-        //        for (PosStrB = 0; PosStrB <= strInputB.Length - lngLen; PosStrB++)
-        //        {
-        //            strTempB = strInputB.Substring(PosStrB, lngLen);
-        //            if ((string.Compare(strTempA, strTempB) == 0))
-        //            {
-        //                TempRet.lngCountLike = (TempRet.lngCountLike + 1);
-        //                break;
-        //            }
-        //        }
-        //        TempRet.lngSubRows = (TempRet.lngSubRows + 1);
-        //    }
-        //    return TempRet;
-        //}
-        //static double IndistinctMatching(int MaxMatching, string strInputMatching, string strInputStandart)
-        //{
-        //    RetCount gret = new RetCount();
-        //    RetCount tret = new RetCount();
-        //    int lngCurLen; //текущая длина подстроки
-        //    //если не передан какой-либо параметр, то выход
-        //    if (MaxMatching == 0 || strInputMatching.Length == 0 || strInputStandart.Length == 0) return 0;
-        //    gret.lngCountLike = 0;
-        //    gret.lngSubRows = 0;
-        //    // Цикл прохода по длине сравниваемой фразы
-        //    for (lngCurLen = 1; lngCurLen <= MaxMatching; lngCurLen++)
-        //    {
-        //        //Сравниваем строку A со строкой B
-        //        tret = Matching(strInputMatching, strInputStandart, lngCurLen);
-        //        gret.lngCountLike = gret.lngCountLike + tret.lngCountLike;
-        //        gret.lngSubRows = gret.lngSubRows + tret.lngSubRows;
-        //        //Сравниваем строку B со строкой A
-        //        tret = Matching(strInputStandart, strInputMatching, lngCurLen);
-        //        gret.lngCountLike = gret.lngCountLike + tret.lngCountLike;
-        //        gret.lngSubRows = gret.lngSubRows + tret.lngSubRows;
-        //    }
-        //    if (gret.lngSubRows == 0) return 0;
-        //    return (double)(gret.lngCountLike * 100.0 / gret.lngSubRows);
-        //}
+            //    for (int i = 0; i < ln.StringInGroup.Count; i++)
+            //    {
+            //        if (ln.StringInGroup[i].CountStringInNote > Max)
+            //        {
+            //            AnsNote = ln.StringInGroup[i];
+            //            Max = ln.StringInGroup[i].CountStringInNote;
+            //        }
+            //    }
+            //    return AnsNote;
+            //}
+            //static void UpdateAverageString(Note n, ref Group g) // обновление усредненной записи
+            //{
+            //    if (n.CountStringInNote > g.AverageNote.CountStringInNote)
+            //    {
+            //        g.AverageNote = n;
+            //    }
+            //}
+            //static void CompaireByGroups(int MaxSubStr, string NewString, List<Group> MainList) // сравнение по группам
+            //{
+            //    double Max = -1;
+            //    int iter = 0;
+            //    string iter_string = "";
+            //    for (int i = 0; i < MainList.Count; i++)
+            //    {
+            //        double tmp_max = IndistinctMatching(MaxSubStr, NewChangeString(NewString), MainList[i].AverageNote.ChangedString);
+            //        if (tmp_max > Max)
+            //        {
+            //            Max = tmp_max;
+            //            iter = i;
+            //            iter_string = MainList[i].AverageNote.OriginalString;
+            //        }
+            //    }
+            //    //Console.WriteLine("--------------------------------------------");
+            //    //Console.WriteLine("Анализ группы");
+            //    //Console.WriteLine("Наиболшее совпадение с новой строкой имеет запись {0}: {1}: {2}% совпадения",iter, iter_string, Max);
+            //    //Console.WriteLine("--------------------------------------------");
+            //    if (Max < 90)
+            //    {
+            //        AddNewNote(NewString, ref MainList);
+            //    }
+            //    else
+            //    {
+            //        Note tmp = new Note
+            //        {
+            //            OriginalString = NewString,
+            //            ChangedString = NewChangeString(NewString),
+            //            CountStringInNote = 1
+            //        };
+            //        MainList[iter].StringInGroup.Add(tmp);
+            //    }
+            //}
+            //static RetCount Matching(string strInputA, string strInputB, int lngLen)
+            //{
+            //    RetCount TempRet = new RetCount();
+            //    int PosStrA;
+            //    int PosStrB;
+            //    string strTempA;
+            //    string strTempB;
+            //    TempRet.lngCountLike = 0;
+            //    TempRet.lngSubRows = 0;
+            //    for (PosStrA = 0; PosStrA <= strInputA.Length - lngLen; PosStrA++)
+            //    {
+            //        strTempA = strInputA.Substring(PosStrA, lngLen);
+            //        for (PosStrB = 0; PosStrB <= strInputB.Length - lngLen; PosStrB++)
+            //        {
+            //            strTempB = strInputB.Substring(PosStrB, lngLen);
+            //            if ((string.Compare(strTempA, strTempB) == 0))
+            //            {
+            //                TempRet.lngCountLike = (TempRet.lngCountLike + 1);
+            //                break;
+            //            }
+            //        }
+            //        TempRet.lngSubRows = (TempRet.lngSubRows + 1);
+            //    }
+            //    return TempRet;
+            //}
+            //static double IndistinctMatching(int MaxMatching, string strInputMatching, string strInputStandart)
+            //{
+            //    RetCount gret = new RetCount();
+            //    RetCount tret = new RetCount();
+            //    int lngCurLen; //текущая длина подстроки
+            //    //если не передан какой-либо параметр, то выход
+            //    if (MaxMatching == 0 || strInputMatching.Length == 0 || strInputStandart.Length == 0) return 0;
+            //    gret.lngCountLike = 0;
+            //    gret.lngSubRows = 0;
+            //    // Цикл прохода по длине сравниваемой фразы
+            //    for (lngCurLen = 1; lngCurLen <= MaxMatching; lngCurLen++)
+            //    {
+            //        //Сравниваем строку A со строкой B
+            //        tret = Matching(strInputMatching, strInputStandart, lngCurLen);
+            //        gret.lngCountLike = gret.lngCountLike + tret.lngCountLike;
+            //        gret.lngSubRows = gret.lngSubRows + tret.lngSubRows;
+            //        //Сравниваем строку B со строкой A
+            //        tret = Matching(strInputStandart, strInputMatching, lngCurLen);
+            //        gret.lngCountLike = gret.lngCountLike + tret.lngCountLike;
+            //        gret.lngSubRows = gret.lngSubRows + tret.lngSubRows;
+            //    }
+            //    if (gret.lngSubRows == 0) return 0;
+            //    return (double)(gret.lngCountLike * 100.0 / gret.lngSubRows);
+            //}
+        }
     }
-}
 
 
 

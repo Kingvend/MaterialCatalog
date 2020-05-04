@@ -6,13 +6,20 @@ using System.Threading.Tasks;
 
 namespace CollisionFinder.DB
 {
-    class MaterialGroup
+    public class MaterialGroup
     {
-        public int ID { get; set; }
-        public string Group_name { get; set; }
-        public string Group_code { get; set; }
-        public string Group_class_name { get; set; }
+        public virtual int ID { get; protected set; }
+        public virtual string Group_name { get; set; }
+        public virtual string Group_code { get; set; }
+        public virtual string Group_class_name { get; set; }
 
-        public List<Material> Material { get; set; }
+        public virtual IList<Material> Material { get; set; }
+
+        public MaterialGroup()
+        {
+            Material = new List<Material>();
+        }
+
+
     }
 }

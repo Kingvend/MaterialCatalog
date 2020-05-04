@@ -166,10 +166,10 @@ namespace CollisionFinder
                     Short.Add(s1.Key, false);
                     int header_1_Row = numRow;
 
-                    double sumB = 0;
-                    double sumA = 0;
-                    double countB, countA;
-                    double priceB, priceA;
+                    //double sumB = 0;
+                    //double sumA = 0;
+                    //double countB, countA;
+                    //double priceB, priceA;
                     //bool IsOrange = false;
 
                     //sheet.Cells[numRow, 3].Value = s1.Key.ToString();
@@ -213,10 +213,10 @@ namespace CollisionFinder
                 foreach (var s1 in NameGroup)
                 {
                     var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
-                    if(difCode.Count > 1 )
-                    {
-                        int i = 2 + 2;
-                    }
+                    //if(difCode.Count > 1 )
+                    //{
+                    //    int i = 2 + 2;
+                    //}
                     CodeCatalog cc = new CodeCatalog();
 
                     cc.Name = s1.Key;
@@ -229,7 +229,7 @@ namespace CollisionFinder
                     double sumA = 0;
                     double countB, countA;
                     double priceB, priceA;
-                    bool IsOrange = false;
+                    //bool IsOrange = false;
 
                     //if (Short[s1.Key] == false) continue;
                     sheet.Cells[numRow, 3].Value = s1.Key.ToString();
