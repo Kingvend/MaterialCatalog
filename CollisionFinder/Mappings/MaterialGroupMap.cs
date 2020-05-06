@@ -13,7 +13,7 @@ namespace CollisionFinder.Mappings
         public MaterialGroupMap()
         {
             Id(x => x.ID);
-            Map(x => x.Group_name);
+            //Map(x => x.Group_name);
             Map(x => x.Group_code);
             Map(x => x.Group_class_name);
 

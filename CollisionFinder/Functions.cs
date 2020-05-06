@@ -77,9 +77,69 @@ namespace CollisionFinder
 
         }
 
-        public static void DateCompire()
+        public static int DateCompire(string s1, string s2)
         {
 
+            // 0 - s1 > s2; 1 - s1 < s2; 2 - s1 = s2;
+
+            int day1, month1, year1;
+            int day2, month2, year2;
+            //int hour1, minute1, second1;
+            //int hour2, minute2, second2;
+
+            day1 = Int32.Parse(s1.Substring(0, 2));
+            month1 = Int32.Parse(s1.Substring(3, 2));
+            year1 = Int32.Parse(s1.Substring(6, 4));
+
+            day2 = Int32.Parse(s2.Substring(0, 2));
+            month2 = Int32.Parse(s2.Substring(3, 2));
+            year2 = Int32.Parse(s2.Substring(6, 4));
+
+            if(year1 == year2)
+            {
+                if(month1 == month2)
+                {
+                    if (day1 == day2)
+                    {
+                        return 2;
+                    }
+                    else
+                    {
+                        return day1 < day2 ? 1 : 0;
+                    }
+                }
+                else
+                {
+                    return month1 < month2 ? 1 : 0;
+                }
+            }
+            else
+            {
+                return year1 < year2 ? 1 : 0;
+            }
+        }
+
+        public static string FindBaseCode(List<BaseCodeAtribute> baseCodeAtributes)
+        {
+            List<BaseCodeAtribute> baseCodeAtributesBestDate = new List<BaseCodeAtribute>();
+            string LastDate = "00.00.0000 0:00:00";
+            foreach(var d in baseCodeAtributes)
+            {
+                if(DateCompire(d.date,LastDate) == 0)
+                {
+                    baseCodeAtributesBestDate.Clear();
+                    baseCodeAtributesBestDate.Add(d);
+                }
+                else
+                {
+                    if (DateCompire(d.date, LastDate) == 2)
+                    {
+                        baseCodeAtributesBestDate.Add(d);
+                    }
+                }
+            }
+
+            return baseCodeAtributesBestDate[0].code;
         }
     }
 }

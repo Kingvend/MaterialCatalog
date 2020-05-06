@@ -102,6 +102,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseCodeAtribute.cs" />
     <Compile Include="CodeCatalog.cs" />
     <Compile Include="DB\CustomHistory.cs" />
     <Compile Include="DB\Material.cs" />

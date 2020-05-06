@@ -34,14 +34,14 @@ namespace CollisionFinder
 
             //string newPath_3 = @"C:\Users\Alex\Desktop\файлы\TotalFile\TotalFile.xlsx";
             //  MyCLI.Menu(); 
-            Test();
-            //Test2();
+            Test(); // work this MTR CATALOG
+            //Test2(); // Test features
 
 
         }
         static void Test2()
         {
-            
+           
         }
 
         static void Test()
@@ -110,12 +110,9 @@ namespace CollisionFinder
                 doc.Dispose();
             }
         }
-
-        public static void FormBD(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
+        
+        public static void FormGroup3Params(List<MTR_Catalog> MtrCatalogList)
         {
-            int MaterialIDCount = 0;
-            var CodeCatalogList = new List<CodeCatalog>();
-
             var group = MtrCatalogList
                 .Select(u => new
                 {
@@ -124,12 +121,53 @@ namespace CollisionFinder
                     groupCodeClass = u.NaimCodeClass
                 }
                 ).GroupBy(s => s.groupCode).Distinct();
-            foreach(var t0 in group)
+            foreach (var t0 in group)
             {
                 var ngroup = t0
                     .Distinct();
-                CreateMaterialGroup(ngroup);
+                CreateMaterialGroup3Params(ngroup);
             }
+        }
+
+        public static void FormGroup2Params(List<MTR_Catalog> MtrCatalogList)
+        {
+            var group = MtrCatalogList
+                .Select(u => new
+                {
+                    groupCode = u.GroupCode,
+                    groupCodeClass = u.NaimCodeClass
+                }
+                ).GroupBy(s => s.groupCode).Distinct();
+            foreach (var t0 in group)
+            {
+                var ngroup = t0
+                    .Distinct();
+                CreateMaterialGroup2Params(ngroup);
+            }
+        }
+
+        public static void FormBD(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
+        {
+            int MaterialIDCount = 0;
+            var CodeCatalogList = new List<CodeCatalog>();
+
+            //var group = MtrCatalogList
+            //    .Select(u => new
+            //    {
+            //        groupName = u.GroupName,
+            //        groupCode = u.GroupCode,
+            //        groupCodeClass = u.NaimCodeClass
+            //    }
+            //    ).GroupBy(s => s.groupCode).Distinct();
+            //foreach(var t0 in group)
+            //{
+            //    var ngroup = t0
+            //        .Distinct();
+            //    CreateMaterialGroup(ngroup);
+            //}
+
+            FormGroup2Params(MtrCatalogList);
+
             var ShortNameGroup = MtrCatalogList
         .GroupBy(s => s.MaterialFullName);
             foreach (var s0 in ShortNameGroup)
@@ -139,6 +177,7 @@ namespace CollisionFinder
                 foreach (var s1 in NameGroup)
                 {
                     DB.Material _material = new DB.Material();
+                   
                     //_material.CustomHistory = new List<DB.Custom_history>();
                     //_material.MaterialCode = new List<DB.Material_code>();
                     //_material.ID = MaterialIDCount; // for NHibernate
@@ -151,20 +190,42 @@ namespace CollisionFinder
                         var FindGroup = materialGroupDB
                             .Where(u => u.Group_class_name == s2.NaimCodeClass)
                             .Where(u => u.Group_code == s2.GroupCode)
-                            .Where(u => u.Group_name == s2.GroupName)
+                            //.Where(u => u.Group_name == s2.GroupName) // uncomment for 3 params
                             .ToList();
                         FindGroup[0].Material.Add(_material);
-                        //_material.Material_group_ID = FindGroup[0].ID; // может даже убрать
                         _material.MaterialGroup = FindGroup[0];
                         break;
                     }
 
+                    List<BaseCodeAtribute> baseCodeAtributeList = new List<BaseCodeAtribute>();
+                    var pp = s1
+                        .Select(u => new
+                        {
+                            code = u.MaterialCode,
+                            date = u.DeliveryDate
+                        });
+
+                    foreach (var s in pp)
+                    {
+                        BaseCodeAtribute BCL = new BaseCodeAtribute();
+
+                        var tp = Cast(s, new { code = "", date = "" });
+                        BCL.code = tp.code;
+                        BCL.date = tp.date;
+                        baseCodeAtributeList.Add(BCL);
+                    }
+
                     // формируются коды
-                    var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
+                    var difCode = s1
+                        .GroupBy(x => x.MaterialCode)
+                        .Select(x => x.First())
+                        .Select(x => x.MaterialCode)
+                        .ToList();
                     CodeCatalog cc = new CodeCatalog();
 
                     cc.Name = s1.Key;
-                    cc.BaseCode = difCode[0]; // TMP
+                    //cc.BaseCode = difCode[0]; // TMP
+                    cc.BaseCode = Functions.FindBaseCode(baseCodeAtributeList);
                     cc.AltCode = difCode;
                     _material.Basic_code = cc.BaseCode;
                     CodeCatalogList.Add(cc);
@@ -180,7 +241,7 @@ namespace CollisionFinder
                     materialDB.Add(_material);
                 }
             }
-            NHibernateWork();
+            //NHibernateWork();
             //BDExcelOutput(); вывод базы в excel
         }
 
@@ -265,7 +326,7 @@ namespace CollisionFinder
             return (T)obj;
         }
 
-        private static void CreateMaterialGroup(IEnumerable<object> ngroup)
+        private static void CreateMaterialGroup3Params(IEnumerable<object> ngroup)
         {
             foreach(var s in ngroup)
             {
@@ -279,7 +340,21 @@ namespace CollisionFinder
                 materialGroupDB.Add(_Group);
             }
         }
-      
+
+        private static void CreateMaterialGroup2Params(IEnumerable<object> ngroup)
+        {
+            foreach (var s in ngroup)
+            {
+                DB.MaterialGroup _Group = new DB.MaterialGroup();
+                //_Group.Material = new List<DB.Material>();
+                //_Group.ID = materialGroupDB.Count(); // for NHibernate
+                var tt = Cast(s, new { groupCode = "", groupCodeClass = "" });
+                _Group.Group_code = tt.groupCode;
+                _Group.Group_class_name = tt.groupCodeClass;
+                materialGroupDB.Add(_Group);
+            }
+        }
+
         public static void CreateMaterialCode(ref DB.Material material, CodeCatalog codeCatalog)
         {
             //material.MaterialCode = new List<DB.Material_code>();
@@ -357,7 +432,7 @@ namespace CollisionFinder
 
         private static void BuildSchema(NHibernate.Cfg.Configuration config)
         {
-            #region tutor
+
             // delete the existing db on each run
             if (File.Exists(DbFile))
                 File.Delete(DbFile);
@@ -366,7 +441,6 @@ namespace CollisionFinder
             // and exports a database schema from it
             new SchemaExport(config)
               .Create(false, true);
-            #endregion
 
         }
 

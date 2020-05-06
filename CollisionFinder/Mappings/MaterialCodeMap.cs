@@ -13,7 +13,7 @@ namespace CollisionFinder.Mappings
         {
             Id(x => x.ID);
             //Map(x => x.Material_ID);
-            Map(x => x.Basic_code);
+            //Map(x => x.Basic_code);
             Map(x => x.Alternative_code);
 
             References(x => x.Material);

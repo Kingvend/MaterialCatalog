@@ -14,8 +14,10 @@ namespace CollisionFinder.Mappings
             Id(x => x.ID);
             Map(x => x.Basic_code);
             Map(x => x.IsHide);
-            Map(x => x.Material_name);
-            Map(x => x.Material_fullname);
+            Map(x => x.Material_name)
+                .Length(1000);
+            Map(x => x.Material_fullname)
+                .Length(1000);
             Map(x => x.Measure_unit);
             References(x => x.MaterialGroup);
             HasMany(x => x.CustomHistory)

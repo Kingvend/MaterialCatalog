@@ -13,7 +13,8 @@ namespace CollisionFinder.Mappings
         {
             Id(x => x.ID);
             //Map(x => x.Material_ID);
-            Map(x => x.Consignee_detail);
+            Map(x => x.Consignee_detail)
+                .Length(1000);
             Map(x => x.Shipment_date);
             Map(x => x.Basis_measure_unit);
             Map(x => x.Count_BMU);
