@@ -99,14 +99,15 @@ namespace CollisionFinder
             {
                 if(month1 == month2)
                 {
-                    if (day1 == day2)
-                    {
-                        return 2;
-                    }
-                    else
-                    {
-                        return day1 < day2 ? 1 : 0;
-                    }
+                    //if (day1 == day2) // only year and month
+                    //{
+                    //    return 2;
+                    //}
+                    //else
+                    //{
+                    //    return day1 < day2 ? 1 : 0;
+                    //}
+                    return 2;
                 }
                 else
                 {
@@ -129,14 +130,39 @@ namespace CollisionFinder
                 {
                     baseCodeAtributesBestDate.Clear();
                     baseCodeAtributesBestDate.Add(d);
+                    LastDate = d.date;
                 }
                 else
                 {
                     if (DateCompire(d.date, LastDate) == 2)
                     {
                         baseCodeAtributesBestDate.Add(d);
+                        LastDate = d.date;
                     }
                 }
+            }
+
+            if(baseCodeAtributesBestDate.Count > 1)
+            {
+                //var tt = baseCodeAtributesBestDate // for test
+                //    .Select(s => s.code)
+                //    .Distinct()
+                //    .Count();
+                //if (tt > 1)
+                //{
+                //    int i = 2;
+                //}
+                var unic = baseCodeAtributesBestDate
+                    .GroupBy(s => s.code)
+                   .OrderByDescending(s => s.Count())
+                   .First()
+                   .Key;
+                return unic;
+
+            }
+            else
+            {
+                return baseCodeAtributesBestDate[0].code;
             }
 
             return baseCodeAtributesBestDate[0].code;

@@ -175,7 +175,7 @@ namespace CollisionFinder
                     //sheet.Cells[numRow, 3].Value = s1.Key.ToString();
 
 
-
+                    // подсчет различных кодов
                     var tt = s1
                        .Select(s => s.MaterialCode)
                        .Distinct()
@@ -184,6 +184,7 @@ namespace CollisionFinder
                     {
                         //sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         //sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Orange);
+
                         Full[s0.Key]++;
                         Short[s1.Key] = true;
                     }
@@ -203,7 +204,7 @@ namespace CollisionFinder
                 .GroupBy(s => s.MaterialFullName);
             foreach(var s0 in ShortNameGroup)
             {
-                //if (Full[s0.Key] == 0) continue;
+                //if (Full[s0.Key] == 0) continue; // for find collision
                 sheet.Cells[numRow, 4].Value = s0.Key.ToString();
                 sheet.Cells[numRow, 4].Style.WrapText = true;
                 numRow++;
@@ -212,6 +213,8 @@ namespace CollisionFinder
                 .GroupBy(s => s.MaterialName);              
                 foreach (var s1 in NameGroup)
                 {
+                    int countDifBI = 0;
+                    string prevBI = "";
                     var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
                     //if(difCode.Count > 1 )
                     //{
@@ -231,7 +234,7 @@ namespace CollisionFinder
                     double priceB, priceA;
                     //bool IsOrange = false;
 
-                    //if (Short[s1.Key] == false) continue;
+                    //if (Short[s1.Key] == false) continue; // for find collision
                     sheet.Cells[numRow, 3].Value = s1.Key.ToString();
                  
                     var tt = s1
@@ -245,7 +248,7 @@ namespace CollisionFinder
                     }
                     else
                     {
-                        //continue;
+                        //continue; // for find collision
                         sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Green);
                     }
@@ -254,6 +257,9 @@ namespace CollisionFinder
                         .OrderBy(s => s.MaterialCode);
                     foreach (var s2 in gg)
                     {
+                        //if (prevBI == s2.BasisMU) continue; // for find collision
+                        prevBI = s2.BasisMU;
+                        countDifBI++;
                         sheet.Cells[numRow, 1].Value = s2.MaterialCode;
                         sheet.Cells[numRow, 2].Value = s2.BlockCode;
                         //sheet.Cells[numRow, 3].Value = s2.MaterialName;
@@ -288,6 +294,7 @@ namespace CollisionFinder
                        
                         numRow++;
                     }
+                    //if (countDifBI == 1) numRow -= 2; // for find collision
                     sheet.Cells[header_1_Row, 17].Value = sumB.ToString();
                     sheet.Cells[header_1_Row, 18].Value = sumA.ToString();
                 }
