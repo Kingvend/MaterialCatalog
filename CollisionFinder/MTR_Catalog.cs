@@ -105,6 +105,8 @@ namespace CollisionFinder
 
         public string OKPD2Code { get; set; }
 
+        public string Brutto { get; set; }
+
         public static List<CodeCatalog> Header(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
         {
             Dictionary<string, int> Full = new Dictionary<string, int>();
@@ -148,6 +150,7 @@ namespace CollisionFinder
             sheet.Cells[2, 20].Value = "СПП код";
             sheet.Cells[2, 21].Value = "код по ОКПД2";
             sheet.Cells[2, 22].Value = "ОКПД2";
+            sheet.Cells[2, 23].Value = "Вес Брутто";
 
             //пометка данных с коллизией
             var numRow = 4;
@@ -286,6 +289,7 @@ namespace CollisionFinder
                         sheet.Cells[numRow, 20].Value = s2.SPPElem;
                         sheet.Cells[numRow, 21].Value = s2.OKPD2Code;
                         sheet.Cells[numRow, 22].Value = s2.OKPD2;
+                        sheet.Cells[numRow, 23].Value = s2.Brutto;
 
                         if (Double.TryParse(s2.AltMUCount, out countA) && Double.TryParse(s2.AltMUPrice, out priceA))
                         {

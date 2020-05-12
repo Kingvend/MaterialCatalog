@@ -110,6 +110,8 @@ namespace CollisionFinder
 
         public int OKPD2CodeCol { get; set; }
 
+        public int BruttoCol { get; set; }
+
         public MtrCatalogFileProperty FindColumns(ref ExcelWorksheet sheet, MtrCatalogFileProperty tt)
         {
             var ans = tt;
@@ -290,6 +292,15 @@ namespace CollisionFinder
                 if (sheet.Cells[1, i].Value.ToString() == "Код по ОКПД2")
                 {
                     ans.OKPD2CodeCol = i;
+                    break;
+                }
+            }
+
+            for (int i = 1; i <= _find_size; i++)
+            {
+                if (sheet.Cells[1, i].Value.ToString() == "Вес брутто")
+                {
+                    ans.BruttoCol = i;
                     break;
                 }
             }

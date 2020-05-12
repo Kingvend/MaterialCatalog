@@ -291,7 +291,9 @@ namespace CollisionFinder
 
                                 OKPD2 = sheet.Cells[i, ml.OKPD2Col].Value.ToString(),
 
-                                OKPD2Code = sheet.Cells[i, ml.OKPD2CodeCol].Value.ToString()
+                                OKPD2Code = sheet.Cells[i, ml.OKPD2CodeCol].Value.ToString(),
+
+                                Brutto = sheet.Cells[i, ml.BruttoCol].Value.ToString()                               
                             };
                             tmp_MTRCatalogList.Add(tmp);
 
