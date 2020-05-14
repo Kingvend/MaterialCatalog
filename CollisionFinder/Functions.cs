@@ -170,7 +170,6 @@ namespace CollisionFinder
         static List<MTR_Catalog> CatalogForYear(List<MTR_Catalog> catalogs, int year)
         {
             var catalog = new List<MTR_Catalog>();
-            int month1;
             int year1;
             
             // code
