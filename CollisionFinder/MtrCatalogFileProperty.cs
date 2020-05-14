@@ -112,6 +112,10 @@ namespace CollisionFinder
 
         public int BruttoCol { get; set; }
 
+        public int Kol_voSCHFCol { get; set; }
+
+        public int SumSCHFWithoutNDSCol { get; set; }
+
         public MtrCatalogFileProperty FindColumns(ref ExcelWorksheet sheet, MtrCatalogFileProperty tt)
         {
             var ans = tt;
@@ -305,6 +309,23 @@ namespace CollisionFinder
                 }
             }
 
+            for (int i = 1; i <= _find_size; i++)
+            {
+                if (sheet.Cells[1, i].Value.ToString() == "Количество по Сч/ф")
+                {
+                    ans.Kol_voSCHFCol = i;
+                    break;
+                }
+            }
+
+            for (int i = 1; i <= _find_size; i++)
+            {
+                if (sheet.Cells[1, i].Value.ToString() == "Сумма по Сч/ф без НДС")
+                {
+                    ans.SumSCHFWithoutNDSCol = i;
+                    break;
+                }
+            }
             return ans;
         }        
     }

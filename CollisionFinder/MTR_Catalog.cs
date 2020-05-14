@@ -13,7 +13,6 @@ namespace CollisionFinder
     {
         // CODE
         
-
         /// <summary>
         /// Код МТР
         /// </summary>
@@ -107,6 +106,10 @@ namespace CollisionFinder
 
         public string Brutto { get; set; }
 
+        public string Kol_voSCHF { get; set; }
+
+        public string SumSCHFWithoutNDS { get; set; }
+
         public static List<CodeCatalog> Header(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
         {
             Dictionary<string, int> Full = new Dictionary<string, int>();
@@ -143,7 +146,7 @@ namespace CollisionFinder
                 sheet.Cells[3, i - 2].Value = prop[i].Name.ToString();
             }
 
-            sheet.Cells[2, 17].Value = "Сумма по базисным ЕИ";
+            sheet.Cells[2, 17].Value = "Средневзвешенная цена с учетотм влияния объемов закупки по годам";
             sheet.Cells[2, 18].Value = "Сумма по альтернативным ЕИ";
 
             sheet.Cells[2, 19].Value = "СПП имя";
@@ -151,6 +154,8 @@ namespace CollisionFinder
             sheet.Cells[2, 21].Value = "код по ОКПД2";
             sheet.Cells[2, 22].Value = "ОКПД2";
             sheet.Cells[2, 23].Value = "Вес Брутто";
+            sheet.Cells[2, 24].Value = "Количество по Сч/ф";
+            sheet.Cells[2, 25].Value = "Сумма по Сч/ф без НДС";
 
             //пометка данных с коллизией
             var numRow = 4;
@@ -216,6 +221,7 @@ namespace CollisionFinder
                 .GroupBy(s => s.MaterialName);              
                 foreach (var s1 in NameGroup)
                 {
+                    double Sum = Functions.SumMtr(s1.ToList(), 1.055, 1.06, 2019);
                     int countDifBI = 0;
                     string prevBI = "";
                     var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
@@ -284,12 +290,16 @@ namespace CollisionFinder
                         sheet.Cells[numRow, 14].Value = s2.AltMU;
                         sheet.Cells[numRow, 15].Value = s2.AltMUCount;
                         sheet.Cells[numRow, 16].Value = s2.AltMUPrice;
-
+                        double tmp;
                         sheet.Cells[numRow, 19].Value = s2.SPPName;
                         sheet.Cells[numRow, 20].Value = s2.SPPElem;
                         sheet.Cells[numRow, 21].Value = s2.OKPD2Code;
                         sheet.Cells[numRow, 22].Value = s2.OKPD2;
                         sheet.Cells[numRow, 23].Value = s2.Brutto;
+                        Double.TryParse(s2.Kol_voSCHF, out tmp);
+                        sheet.Cells[numRow, 24].Value = tmp;
+                        Double.TryParse(s2.SumSCHFWithoutNDS, out tmp);
+                        sheet.Cells[numRow, 25].Value = tmp;
 
                         if (Double.TryParse(s2.AltMUCount, out countA) && Double.TryParse(s2.AltMUPrice, out priceA))
                         {
@@ -299,8 +309,14 @@ namespace CollisionFinder
                         numRow++;
                     }
                     //if (countDifBI == 1) numRow -= 2; // for find collision
-                    sheet.Cells[header_1_Row, 17].Value = sumB.ToString();
-                    sheet.Cells[header_1_Row, 18].Value = sumA.ToString();
+                    //sheet.Cells[header_1_Row, 17].Value = sumB.ToString();
+                    sheet.Cells[header_1_Row, 17].Value = Sum;
+                    if (Sum == 0)
+                    {
+                        sheet.Cells[header_1_Row, 17].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        sheet.Cells[header_1_Row, 17].Style.Fill.BackgroundColor.SetColor(Color.Orange);
+                    }
+                    //sheet.Cells[header_1_Row, 18].Value = sumA.ToString();
                 }
             }
 

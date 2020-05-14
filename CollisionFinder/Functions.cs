@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace CollisionFinder
@@ -166,11 +167,107 @@ namespace CollisionFinder
             }
         }
 
-        static double SumMtr(List<MTR_Catalog> catalogs, double koef1, double koef2)
+        static List<MTR_Catalog> CatalogForYear(List<MTR_Catalog> catalogs, int year)
         {
+            var catalog = new List<MTR_Catalog>();
+            int month1;
+            int year1;
             
+            // code
+            foreach (var c in catalogs)
+            {
+                //month1 = Int32.Parse(c.DeliveryDate.Substring(3, 2));
+                year1 = Int32.Parse(c.DeliveryDate.Substring(6, 4));
+                if(year1 == year)
+                {
+                    catalog.Add(c);
+                }
+            }
+                return catalog;
+        }
+
+        public static double SumMtr(List<MTR_Catalog> catalogs, double Koef1, double Koef2, int CurentYear)
+        {
+            var Catalog1 = new List<MTR_Catalog>();
+            var Catalog2 = new List<MTR_Catalog>();
+            var Catalog3 = new List<MTR_Catalog>();
+            NumberFormatInfo provider = new NumberFormatInfo();
+            provider.NumberDecimalSeparator = ",";
+
+            double Sum1 = 0, Sum2 = 0, Sum3 = 0;
+            double V1 = 0, V2 = 0, V3 = 0;
+
             double ans = 0.0;
             // code
+            // 3 catalogs for last 3 year
+            Catalog1.AddRange(CatalogForYear(catalogs, CurentYear));
+            Catalog2.AddRange(CatalogForYear(catalogs, CurentYear - 1));
+            Catalog3.AddRange(CatalogForYear(catalogs, CurentYear - 2));
+
+            foreach(var s in Catalog1)
+            {
+                double tmpSum, tmpV;
+                tmpSum = Convert.ToDouble(s.SumSCHFWithoutNDS, provider);
+                Sum1 += tmpSum;
+                tmpV = Convert.ToDouble(s.Kol_voSCHF, provider);
+                V1 += tmpV;
+            }
+
+            foreach (var s in Catalog2)
+            {
+                double tmpSum, tmpV;
+                tmpSum = Convert.ToDouble(s.SumSCHFWithoutNDS, provider);
+                Sum2 += tmpSum;
+                tmpV = Convert.ToDouble(s.Kol_voSCHF, provider);
+                V2 += tmpV;
+            }
+
+            foreach (var s in Catalog3)
+            {
+                double tmpSum, tmpV;
+                tmpSum = Convert.ToDouble(s.SumSCHFWithoutNDS, provider);
+                Sum3 += tmpSum;
+                tmpV = Convert.ToDouble(s.Kol_voSCHF, provider);
+                V3 += tmpV;
+            }
+
+            double TotalV = V1 + V2 + V3;
+            double Sr1, Sr2, Sr3;
+            if (V1 == 0)
+            {
+                Sr1 = 0;
+            }
+            else
+            {
+                Sr1 = Sum1 / V1;
+            }
+
+            if (V2 == 0)
+            {
+                Sr2 = 0;
+            }
+            else
+            {
+                Sr2 = Sum2 / V2 * Koef1;
+            }
+
+            if (V3 == 0)
+            {
+                Sr3 = 0;
+            }
+            else
+            {
+                Sr3 = Sum3 / V3 * Koef1 * Koef2;
+            }
+
+            if (TotalV == 0)
+            {
+                ans = 0;
+            }
+            else
+            {
+                ans = (V1 / TotalV * Sr1) + (V2 / TotalV * Sr2) + (V3 / TotalV * Sr3);
+            }
 
             return ans;
         }

@@ -293,7 +293,11 @@ namespace CollisionFinder
 
                                 OKPD2Code = sheet.Cells[i, ml.OKPD2CodeCol].Value.ToString(),
 
-                                Brutto = sheet.Cells[i, ml.BruttoCol].Value.ToString()                               
+                                Brutto = sheet.Cells[i, ml.BruttoCol].Value.ToString(),
+                                
+                                Kol_voSCHF = sheet.Cells[i, ml.Kol_voSCHFCol].Value.ToString(),
+
+                                SumSCHFWithoutNDS = sheet.Cells[i, ml.SumSCHFWithoutNDSCol].Value.ToString()
                             };
                             tmp_MTRCatalogList.Add(tmp);
 
