@@ -164,8 +164,23 @@ namespace CollisionFinder
             {
                 return baseCodeAtributesBestDate[0].code;
             }
-
-            return baseCodeAtributesBestDate[0].code;
         }
+
+        static double SumMtr(List<MTR_Catalog> catalogs, double koef1, double koef2)
+        {
+            
+            double ans = 0.0;
+            // code
+
+            return ans;
+        }
+
+        static string EIFormat(string EI)
+        {
+            string formatEI = "";
+
+            return formatEI;
+        }
+
     }
 }
