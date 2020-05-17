@@ -19,5 +19,9 @@ namespace CollisionFinder
         /// дата поставки
         /// </summary>
         public string date;
+        /// <summary>
+        /// Флаг блокоировки кода
+        /// </summary>
+        public string blockCode;
     }
 }

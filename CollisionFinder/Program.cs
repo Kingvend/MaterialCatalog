@@ -59,15 +59,15 @@ namespace CollisionFinder
             };
             mtrProp.Add(MtrCatalogFileProperty);
 
-            //MtrCatalogFileProperty = new MtrCatalogFileProperty
-            //{
-            //    FilePath = @"C:\Users\Alex\Desktop\файлы\Выгрузка 509 17.03.2020.zip\Выгрузка 509 17.03.2020_test.xlsx",
+            MtrCatalogFileProperty = new MtrCatalogFileProperty
+            {
+                FilePath = @"C:\Users\Alex\Desktop\файлы\Выгрузка 509 17.03.2020.zip\Выгрузка 509 17.03.2020_test.xlsx",
 
-            //    FirstRow = 2,
+                FirstRow = 2,
 
-            //    LastRow = 106772,
-            //};
-            //mtrProp.Add(MtrCatalogFileProperty);
+                LastRow = 106772,
+            };
+            mtrProp.Add(MtrCatalogFileProperty);
 
             var MaterialCatalog = InputOutput.ReadMaterialForCatalog(mtrProp);
 
@@ -202,16 +202,18 @@ namespace CollisionFinder
                         .Select(u => new
                         {
                             code = u.MaterialCode,
-                            date = u.DeliveryDate
+                            date = u.DeliveryDate,
+                            blockCode = u.BlockCode
                         });
 
                     foreach (var s in pp)
                     {
                         BaseCodeAtribute BCL = new BaseCodeAtribute();
 
-                        var tp = Cast(s, new { code = "", date = "" });
+                        var tp = Cast(s, new { code = "", date = "", blockCode = "" });
                         BCL.code = tp.code;
                         BCL.date = tp.date;
+                        BCL.blockCode = tp.blockCode;
                         baseCodeAtributeList.Add(BCL);
                     }
 
@@ -224,7 +226,6 @@ namespace CollisionFinder
                     CodeCatalog cc = new CodeCatalog();
 
                     cc.Name = s1.Key;
-                    //cc.BaseCode = difCode[0]; // TMP
                     cc.BaseCode = Functions.FindBaseCode(baseCodeAtributeList);
                     cc.AltCode = difCode;
                     _material.Basic_code = cc.BaseCode;
@@ -242,7 +243,7 @@ namespace CollisionFinder
                 }
             }
             //NHibernateWork();
-            //BDExcelOutput(); вывод базы в excel
+            //BDExcelOutput(); //вывод базы в excel
         }
 
         static void BDExcelOutput()

@@ -257,7 +257,7 @@ namespace CollisionFinder
                             {
                                 MaterialCode = sheet.Cells[i, ml.MaterialCodeCol].Value.ToString(),
 
-                                BlockCode = sheet.Cells[i, ml.BlockCodeCol].Value.ToString(),
+                                BlockCode = Functions.BlockCodeConvert(sheet.Cells[i, ml.BlockCodeCol].Value.ToString()),
 
                                 MaterialName = sheet.Cells[i, ml.MaterialNameCol].Value.ToString(),
 

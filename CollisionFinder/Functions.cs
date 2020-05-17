@@ -17,7 +17,7 @@ namespace CollisionFinder
             string s = "";
             for (int i = path.Length - 1; i >= 0; i--)
             {
-               if(path[i] != '\\')
+                if (path[i] != '\\')
                 {
                     s = s.Insert(0, path[i].ToString());
                 }
@@ -25,10 +25,22 @@ namespace CollisionFinder
                 {
                     break;
                 }
-                    
+
             }
             return s;
         }
+
+        public static string BlockCodeConvert(string str)
+        {
+            string ans = "";
+            switch (str)
+            {
+                case "Нет": ans = "0"; break;
+                case "Да": ans = "1"; break;
+            }
+            return ans;
+        }
+
         /// <summary>
         /// преобразует индекс колонки excel в порядковый номер
         /// </summary>
@@ -38,12 +50,12 @@ namespace CollisionFinder
         {
             int ans = 0;
             int pow = 0;
-            for(int i = s.Length-1;i >=0;i--)
+            for (int i = s.Length - 1; i >= 0; i--)
             {
-                ans += (s[i] - 'A' + 1) * (int)Math.Pow(26,pow);
+                ans += (s[i] - 'A' + 1) * (int)Math.Pow(26, pow);
                 pow++;
             }
-            return ans;  
+            return ans;
         }
         /// <summary>
         /// Преобразование строки
@@ -54,7 +66,7 @@ namespace CollisionFinder
         {
             string tmp_string = "";
             tmp_string = NewString;
-            if(tmp_string == null)
+            if (tmp_string == null)
             {
                 tmp_string = "";
             }
@@ -70,13 +82,9 @@ namespace CollisionFinder
 
             return tmp_string;
         }
-       /// <summary>
-       /// нахождение  
-       /// </summary>
-        public static void FindHeader(string FilePath, int FirstRow, int LastRow, string[] Headers)
-        {
-
-        }
+        /// <summary>
+        /// нахождение  
+        /// </summary>
 
         public static int DateCompire(string s1, string s2)
         {
@@ -96,9 +104,9 @@ namespace CollisionFinder
             month2 = Int32.Parse(s2.Substring(3, 2));
             year2 = Int32.Parse(s2.Substring(6, 4));
 
-            if(year1 == year2)
+            if (year1 == year2)
             {
-                if(month1 == month2)
+                if (month1 == month2)
                 {
                     //if (day1 == day2) // only year and month
                     //{
@@ -121,13 +129,15 @@ namespace CollisionFinder
             }
         }
 
-        public static string FindBaseCode(List<BaseCodeAtribute> baseCodeAtributes)
+        public static string FindBaseCode(List<BaseCodeAtribute> baseCodeAtributes0)
         {
+            var baseCodeAtributes = baseCodeAtributes0
+                .Where(s => s.blockCode == "0");
             List<BaseCodeAtribute> baseCodeAtributesBestDate = new List<BaseCodeAtribute>();
             string LastDate = "00.00.0000 0:00:00";
-            foreach(var d in baseCodeAtributes)
+            foreach (var d in baseCodeAtributes)
             {
-                if(DateCompire(d.date,LastDate) == 0)
+                if (DateCompire(d.date, LastDate) == 0)
                 {
                     baseCodeAtributesBestDate.Clear();
                     baseCodeAtributesBestDate.Add(d);
@@ -143,7 +153,7 @@ namespace CollisionFinder
                 }
             }
 
-            if(baseCodeAtributesBestDate.Count > 1)
+            if (baseCodeAtributesBestDate.Count > 1)
             {
                 //var tt = baseCodeAtributesBestDate // for test
                 //    .Select(s => s.code)
@@ -153,16 +163,36 @@ namespace CollisionFinder
                 //{
                 //    int i = 2;
                 //}
-                var unic = baseCodeAtributesBestDate
+
+                // Старый способ
+                //var unic = baseCodeAtributesBestDate
+                //    .GroupBy(s => s.code)
+                //   .OrderByDescending(s => s.Count())
+                //   .First()
+                //   .Key;
+
+                var Max = baseCodeAtributesBestDate
                     .GroupBy(s => s.code)
+                   .Max(s => s.Count());
+
+                var OftenCode = baseCodeAtributesBestDate
+                   .GroupBy(s => s.code)
                    .OrderByDescending(s => s.Count())
+                   .TakeWhile(x => x.Count() == Max)
+                   .ToList();
+                
+                var MaxCode = OftenCode
+                   .OrderByDescending(s => s.Key)
                    .First()
                    .Key;
-                return unic;
-
+                return MaxCode;
             }
             else
             {
+                if (baseCodeAtributesBestDate.Count == 0)
+                {
+                    return "NONE";
+                }
                 return baseCodeAtributesBestDate[0].code;
             }
         }
@@ -171,18 +201,18 @@ namespace CollisionFinder
         {
             var catalog = new List<MTR_Catalog>();
             int year1;
-            
+
             // code
             foreach (var c in catalogs)
             {
                 //month1 = Int32.Parse(c.DeliveryDate.Substring(3, 2));
                 year1 = Int32.Parse(c.DeliveryDate.Substring(6, 4));
-                if(year1 == year)
+                if (year1 == year)
                 {
                     catalog.Add(c);
                 }
             }
-                return catalog;
+            return catalog;
         }
 
         public static double SumMtr(List<MTR_Catalog> catalogs, double Koef1, double Koef2, int CurentYear)
@@ -203,7 +233,7 @@ namespace CollisionFinder
             Catalog2.AddRange(CatalogForYear(catalogs, CurentYear - 1));
             Catalog3.AddRange(CatalogForYear(catalogs, CurentYear - 2));
 
-            foreach(var s in Catalog1)
+            foreach (var s in Catalog1)
             {
                 double tmpSum, tmpV;
                 tmpSum = Convert.ToDouble(s.SumSCHFWithoutNDS, provider);
