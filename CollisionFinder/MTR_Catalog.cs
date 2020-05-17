@@ -281,7 +281,26 @@ namespace CollisionFinder
                 .GroupBy(s => s.MaterialName);
                 foreach (var s1 in NameGroup)
                 {
-                    double Sum = Functions.SumMtr(s1.ToList(), 1.055, 1.06, 2019);
+                    var DiffMUList = new List<DiffMU>();
+                    var difMU = s1
+                        .GroupBy(s => s.BasisMU);
+                    
+                        
+                        foreach(var tmp1 in difMU)
+                        {
+                            var tmp2 = new DiffMU();
+                            tmp2.MU = tmp1.Key;
+                            tmp2.Sum = Functions.SumMtr(tmp1.ToList(), 1.055, 1.06, 2019);
+                            tmp2.Flag = false;
+                            DiffMUList.Add(tmp2);
+                        }
+                    
+                    
+                    //else
+                    //{
+                    //    double Sum = Functions.SumMtr(s1.ToList(), 1.055, 1.06, 2019);
+                    //}
+                    
                     int countDifBI = 0;
                     string prevBI = "";
                     var difCode = s1.GroupBy(x => x.MaterialCode).Select(x => x.First()).Select(x => x.MaterialCode).ToList();
@@ -340,6 +359,27 @@ namespace CollisionFinder
                         sheet.Cells[numRow, 9].Value = s2.ConsigneeDetail;
                         sheet.Cells[numRow, 10].Value = s2.DeliveryDate;
                         sheet.Cells[numRow, 11].Value = s2.BasisMU;
+                        for(int i = 0; i < DiffMUList.Count(); i++)
+                        {
+                            if(s2.BasisMU == DiffMUList[i].MU)
+                            {
+                                if(DiffMUList[i].Flag == false)
+                                {
+                                    if (DiffMUList[i].Sum == 0)
+                                    {
+                                        sheet.Cells[numRow, 17].Value = DiffMUList[i].Sum;
+                                        sheet.Cells[numRow, 17].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                        sheet.Cells[numRow, 17].Style.Fill.BackgroundColor.SetColor(Color.Orange);
+                                        DiffMUList[i].Flag = true;
+                                    }
+                                    else
+                                    {
+                                        sheet.Cells[numRow, 17].Value = DiffMUList[i].Sum;                                      
+                                        DiffMUList[i].Flag = true;
+                                    }
+                                }
+                            }
+                        }
                         sheet.Cells[numRow, 12].Value = s2.BasisMUCount;
                         sheet.Cells[numRow, 13].Value = s2.BasisMUPrice;
 
@@ -372,12 +412,14 @@ namespace CollisionFinder
                     }
                     //if (countDifBI == 1) numRow -= 2; // for find collision
                     //sheet.Cells[header_1_Row, 17].Value = sumB.ToString();
-                    sheet.Cells[header_1_Row, 17].Value = Sum;
-                    if (Sum == 0)
-                    {
-                        sheet.Cells[header_1_Row, 17].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                        sheet.Cells[header_1_Row, 17].Style.Fill.BackgroundColor.SetColor(Color.Orange);
-                    }
+
+                    //sheet.Cells[header_1_Row, 17].Value = Sum;
+                    //if (Sum == 0)
+                    //{
+                    //    sheet.Cells[header_1_Row, 17].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    //    sheet.Cells[header_1_Row, 17].Style.Fill.BackgroundColor.SetColor(Color.Orange);
+                    //}
+
                     //sheet.Cells[header_1_Row, 18].Value = sumA.ToString();
                 }
             }
@@ -403,6 +445,11 @@ namespace CollisionFinder
                 }
             }
             return CodeCatalogList;
+        }
+
+        static T Cast<T>(object obj, T type)
+        {
+            return (T)obj;
         }
     }
 }

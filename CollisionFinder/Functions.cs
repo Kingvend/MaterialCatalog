@@ -302,13 +302,5 @@ namespace CollisionFinder
 
             return ans;
         }
-
-        static string EIFormat(string EI)
-        {
-            string formatEI = "";
-
-            return formatEI;
-        }
-
     }
 }

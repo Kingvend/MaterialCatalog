@@ -108,6 +108,7 @@
     <Compile Include="DB\Material.cs" />
     <Compile Include="DB\MaterialGroup.cs" />
     <Compile Include="DB\MaterialCode.cs" />
+    <Compile Include="DiffMU.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="Collision.cs" />
     <Compile Include="Mappings\CustomHistoryMap.cs" />
