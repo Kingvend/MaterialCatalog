@@ -116,6 +116,8 @@ namespace CollisionFinder
 
         public int SumSCHFWithoutNDSCol { get; set; }
 
+        public int DateSchfCol { get; set; }
+
         public MtrCatalogFileProperty FindColumns(ref ExcelWorksheet sheet, MtrCatalogFileProperty tt)
         {
             var ans = tt;
@@ -323,6 +325,15 @@ namespace CollisionFinder
                 if (sheet.Cells[1, i].Value.ToString() == "Сумма по Сч/ф без НДС")
                 {
                     ans.SumSCHFWithoutNDSCol = i;
+                    break;
+                }
+            }
+
+            for (int i = 1; i <= _find_size; i++)
+            {
+                if (sheet.Cells[1, i].Value.ToString() == "Дата Сч/ф")
+                {
+                    ans.DateSchfCol = i;
                     break;
                 }
             }

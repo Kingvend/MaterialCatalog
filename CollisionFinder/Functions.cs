@@ -7,6 +7,8 @@ namespace CollisionFinder
 {
     static class Functions
     {
+        
+
         /// <summary>
         /// Выделяет имя файла из пути
         /// </summary>

@@ -3,16 +3,24 @@ using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CollisionFinder
 {
+
+
     class MTR_Catalog
     {
-        // CODE
+
         
+
+        private string _dateSchf;
+
+        // CODE
+
         /// <summary>
         /// Код МТР
         /// </summary>
@@ -110,6 +118,55 @@ namespace CollisionFinder
 
         public string SumSCHFWithoutNDS { get; set; }
 
+        public string DateSchf
+        {
+            get
+            {
+                return _dateSchf;
+            }
+            set
+            {
+                if (value == null)
+                    _dateSchf = "";
+                else
+                    _dateSchf = value;
+            }
+
+        }
+
+        public static void ConvertEI(ref List<MTR_Catalog> catalogs)
+        {
+            NumberFormatInfo provider = new NumberFormatInfo();
+            provider.NumberDecimalSeparator = ",";
+            string specifier = "G";
+            double tmp;
+            for (int i = 0; i < catalogs.Count(); i++)
+            {
+                switch(catalogs[i].BasisMU)
+                {
+                    case "КГ":
+                        // в Т
+                        tmp = Convert.ToDouble(catalogs[i].Kol_voSCHF, provider);
+                        tmp /= 1000;
+                        catalogs[i].Kol_voSCHF = tmp.ToString(specifier);
+                        catalogs[i].BasisMU = "Т";
+                        break;
+                    case "КМ":
+                        // в М
+                        tmp = Convert.ToDouble(catalogs[i].Kol_voSCHF, provider);
+                        tmp *= 1000;
+                        catalogs[i].Kol_voSCHF = tmp.ToString(specifier);
+                        catalogs[i].BasisMU = "М";
+                        break;
+                    case "КТ":
+                        // в ШТ                       
+                        catalogs[i].BasisMU = "ШТ";
+                        break;
+                }
+            }
+
+        }
+
         public static List<CodeCatalog> Header(ExcelWorksheet sheet, List<MTR_Catalog> MtrCatalogList)
         {
             Dictionary<string, int> Full = new Dictionary<string, int>();
@@ -156,6 +213,7 @@ namespace CollisionFinder
             sheet.Cells[2, 23].Value = "Вес Брутто";
             sheet.Cells[2, 24].Value = "Количество по Сч/ф";
             sheet.Cells[2, 25].Value = "Сумма по Сч/ф без НДС";
+            sheet.Cells[2, 26].Value = "Дата Сч/ф";
 
             //пометка данных с коллизией
             var numRow = 4;
@@ -170,8 +228,8 @@ namespace CollisionFinder
                 numRow++;
                 foreach (var s1 in NameGroup)
                 {
-                    if(!Short.ContainsKey(s1.Key))
-                    Short.Add(s1.Key, false);
+                    if (!Short.ContainsKey(s1.Key))
+                        Short.Add(s1.Key, false);
                     int header_1_Row = numRow;
 
                     //double sumB = 0;
@@ -205,12 +263,14 @@ namespace CollisionFinder
             }
             //
 
-            /*var*/ numRow = 4;
+            /*var*/
+            numRow = 4;
             var CodeCatalogList = new List<CodeCatalog>();
 
-            /*var*/ ShortNameGroup = MtrCatalogList
-                .GroupBy(s => s.MaterialFullName);
-            foreach(var s0 in ShortNameGroup)
+            /*var*/
+            ShortNameGroup = MtrCatalogList
+        .GroupBy(s => s.MaterialFullName);
+            foreach (var s0 in ShortNameGroup)
             {
                 //if (Full[s0.Key] == 0) continue; // for find collision
                 sheet.Cells[numRow, 4].Value = s0.Key.ToString();
@@ -218,7 +278,7 @@ namespace CollisionFinder
                 numRow++;
 
                 var NameGroup = s0
-                .GroupBy(s => s.MaterialName);              
+                .GroupBy(s => s.MaterialName);
                 foreach (var s1 in NameGroup)
                 {
                     double Sum = Functions.SumMtr(s1.ToList(), 1.055, 1.06, 2019);
@@ -236,7 +296,7 @@ namespace CollisionFinder
                     cc.AltCode = difCode;
                     CodeCatalogList.Add(cc);
                     int header_1_Row = numRow;
-                  
+
                     double sumB = 0;
                     double sumA = 0;
                     double countB, countA;
@@ -245,7 +305,7 @@ namespace CollisionFinder
 
                     //if (Short[s1.Key] == false) continue; // for find collision
                     sheet.Cells[numRow, 3].Value = s1.Key.ToString();
-                 
+
                     var tt = s1
                        .Select(s => s.MaterialCode)
                        .Distinct()
@@ -261,7 +321,7 @@ namespace CollisionFinder
                         sheet.Cells[numRow, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         sheet.Cells[numRow, 1].Style.Fill.BackgroundColor.SetColor(Color.Green);
                     }
-                                           
+
                     var gg = s1
                         .OrderBy(s => s.MaterialCode);
                     foreach (var s2 in gg)
@@ -300,12 +360,14 @@ namespace CollisionFinder
                         sheet.Cells[numRow, 24].Value = tmp;
                         Double.TryParse(s2.SumSCHFWithoutNDS, out tmp);
                         sheet.Cells[numRow, 25].Value = tmp;
+                        sheet.Cells[numRow, 26].Value = s2.DateSchf;
+
 
                         if (Double.TryParse(s2.AltMUCount, out countA) && Double.TryParse(s2.AltMUPrice, out priceA))
                         {
                             sumA += (countA * priceA);
                         }
-                       
+
                         numRow++;
                     }
                     //if (countDifBI == 1) numRow -= 2; // for find collision
@@ -320,14 +382,14 @@ namespace CollisionFinder
                 }
             }
 
-            for(int i = 4; i < numRow; i++)
+            for (int i = 4; i < numRow; i++)
             {
-                if(sheet.Cells[i, 4].Value == null)
+                if (sheet.Cells[i, 4].Value == null)
                 {
                     if (i == 4) continue;
                     else
                     {
-                        if(sheet.Cells[i, 3].Value == null)
+                        if (sheet.Cells[i, 3].Value == null)
                         {
                             sheet.Row(i).OutlineLevel = 2;
                             sheet.Row(i).Collapsed = true;
@@ -336,7 +398,7 @@ namespace CollisionFinder
                         {
                             sheet.Row(i).OutlineLevel = 1;
                             sheet.Row(i).Collapsed = true;
-                        }                      
+                        }
                     }
                 }
             }

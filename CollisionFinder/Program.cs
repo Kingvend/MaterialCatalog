@@ -59,15 +59,15 @@ namespace CollisionFinder
             };
             mtrProp.Add(MtrCatalogFileProperty);
 
-            MtrCatalogFileProperty = new MtrCatalogFileProperty
-            {
-                FilePath = @"C:\Users\Alex\Desktop\файлы\Выгрузка 509 17.03.2020.zip\Выгрузка 509 17.03.2020_test.xlsx",
+            //MtrCatalogFileProperty = new MtrCatalogFileProperty
+            //{
+            //    FilePath = @"C:\Users\Alex\Desktop\файлы\Выгрузка 509 17.03.2020.zip\Выгрузка 509 17.03.2020_test.xlsx",
 
-                FirstRow = 2,
+            //    FirstRow = 2,
 
-                LastRow = 106772,
-            };
-            mtrProp.Add(MtrCatalogFileProperty);
+            //    LastRow = 106772,
+            //};
+            //mtrProp.Add(MtrCatalogFileProperty);
 
             var MaterialCatalog = InputOutput.ReadMaterialForCatalog(mtrProp);
 
@@ -80,10 +80,13 @@ namespace CollisionFinder
                 ExcelWorksheet sheet = doc.Workbook.Worksheets.Add("Sheet1");
 
                     FormBD(sheet, MaterialCatalog);
+
+                    MTR_Catalog.ConvertEI(ref MaterialCatalog);
+                    
                 
                     CodeCatalogList = MTR_Catalog.Header(sheet, MaterialCatalog);
 
-                for(int i = 1; i <= 25; i++)
+                for(int i = 1; i <= 26; i++)
                 {
                     if (i == 4)
                     {
