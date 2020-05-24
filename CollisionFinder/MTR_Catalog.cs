@@ -149,6 +149,11 @@ namespace CollisionFinder
                         tmp = Convert.ToDouble(catalogs[i].Kol_voSCHF, provider);
                         tmp /= 1000;
                         catalogs[i].Kol_voSCHF = tmp.ToString(specifier);
+
+                        tmp = Convert.ToDouble(catalogs[i].Brutto, provider);
+                        tmp /= 1000;
+                        catalogs[i].Brutto = tmp.ToString(specifier);
+
                         catalogs[i].BasisMU = "Т";
                         break;
                     case "КМ":
@@ -156,6 +161,11 @@ namespace CollisionFinder
                         tmp = Convert.ToDouble(catalogs[i].Kol_voSCHF, provider);
                         tmp *= 1000;
                         catalogs[i].Kol_voSCHF = tmp.ToString(specifier);
+
+                        tmp = Convert.ToDouble(catalogs[i].Brutto, provider);
+                        tmp *= 1000;
+                        catalogs[i].Brutto = tmp.ToString(specifier);
+
                         catalogs[i].BasisMU = "М";
                         break;
                     case "КТ":
@@ -283,8 +293,7 @@ namespace CollisionFinder
                 {
                     var DiffMUList = new List<DiffMU>();
                     var difMU = s1
-                        .GroupBy(s => s.BasisMU);
-                    
+                        .GroupBy(s => s.BasisMU);                   
                         
                         foreach(var tmp1 in difMU)
                         {
@@ -400,6 +409,7 @@ namespace CollisionFinder
                         sheet.Cells[numRow, 24].Value = tmp;
                         Double.TryParse(s2.SumSCHFWithoutNDS, out tmp);
                         sheet.Cells[numRow, 25].Value = tmp;
+                        if(s2.DateSchf != "00.00.0000 0:00:00")
                         sheet.Cells[numRow, 26].Value = s2.DateSchf;
 
 
@@ -413,7 +423,7 @@ namespace CollisionFinder
                     //if (countDifBI == 1) numRow -= 2; // for find collision
                     //sheet.Cells[header_1_Row, 17].Value = sumB.ToString();
 
-                    //sheet.Cells[header_1_Row, 17].Value = Sum;
+                    //sheet.Cells[header_1_Row, 17].Value = Sum;                  
                     //if (Sum == 0)
                     //{
                     //    sheet.Cells[header_1_Row, 17].Style.Fill.PatternType = ExcelFillStyle.Solid;

@@ -131,8 +131,9 @@ namespace CollisionFinder
             }
         }
 
-        public static string FindBaseCode(List<BaseCodeAtribute> baseCodeAtributes0)
+        public static BaseCodeAtribute FindBaseCode(List<BaseCodeAtribute> baseCodeAtributes0)
         {
+            BaseCodeAtribute ans = new BaseCodeAtribute();
             var baseCodeAtributes = baseCodeAtributes0
                 .Where(s => s.blockCode == "0");
             List<BaseCodeAtribute> baseCodeAtributesBestDate = new List<BaseCodeAtribute>();
@@ -182,20 +183,34 @@ namespace CollisionFinder
                    .OrderByDescending(s => s.Count())
                    .TakeWhile(x => x.Count() == Max)
                    .ToList();
-                
+
+                //var MaxCode = OftenCode
+                //   .OrderByDescending(s => s.Key)
+                //   .First()
+                //   .Key;              
+                //return MaxCode;
+
                 var MaxCode = OftenCode
                    .OrderByDescending(s => s.Key)
-                   .First()
-                   .Key;
-                return MaxCode;
+                   .First();
+               foreach(var f in MaxCode)
+                {
+                    ans.code = f.code;
+                    ans.MU = f.MU;
+                    ans.Brutto = f.Brutto;
+                }
+                return ans;
             }
             else
             {
                 if (baseCodeAtributesBestDate.Count == 0)
                 {
-                    return "NONE";
+                    ans.code = "NONE";
+                    ans.MU = "NONE";
+                    ans.Brutto = "NONE";
+                    return ans;
                 }
-                return baseCodeAtributesBestDate[0].code;
+                return baseCodeAtributesBestDate[0];
             }
         }
 
@@ -208,7 +223,8 @@ namespace CollisionFinder
             foreach (var c in catalogs)
             {
                 //month1 = Int32.Parse(c.DeliveryDate.Substring(3, 2));
-                year1 = Int32.Parse(c.DeliveryDate.Substring(6, 4));
+                //year1 = Int32.Parse(c.DeliveryDate.Substring(6, 4));
+                year1 = Int32.Parse(c.DateSchf.Substring(6, 4));
                 if (year1 == year)
                 {
                     catalog.Add(c);

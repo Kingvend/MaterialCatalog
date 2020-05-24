@@ -15,6 +15,7 @@ namespace CollisionFinder.DB
         public virtual string Material_fullname { get; set; }
         //public virtual int Material_group_ID { get; set; }
         public virtual string Measure_unit { get; set; }
+        public virtual string Brutto { get; set; }
 
         public virtual IList<CustomHistory> CustomHistory { get; set; }
         public virtual IList<MaterialCode> MaterialCode { get; set; }

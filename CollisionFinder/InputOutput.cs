@@ -301,6 +301,7 @@ namespace CollisionFinder
 
                                 DateSchf = (sheet.Cells[i, ml.DateSchfCol].Value ?? string.Empty).ToString()
                             };
+                            if (tmp.DateSchf == "") tmp.DateSchf = "00.00.0000 0:00:00";
                             tmp_MTRCatalogList.Add(tmp);
 
                         }

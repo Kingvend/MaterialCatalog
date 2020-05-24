@@ -11,6 +11,8 @@ namespace CollisionFinder
         public string Name { get; set; }
         public string BaseCode { get; set; }
         public List<string> AltCode { get; set; }
+        public string BaseMU { get; set; }
+        public string BaseBrutto { get; set; }
 
         static public string FindBaseCode(IGrouping<string, MTR_Catalog> MC)
         {

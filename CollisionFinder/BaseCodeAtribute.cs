@@ -23,5 +23,9 @@ namespace CollisionFinder
         /// Флаг блокоировки кода
         /// </summary>
         public string blockCode;
+
+        public string MU;
+
+        public string Brutto;
     }
 }
