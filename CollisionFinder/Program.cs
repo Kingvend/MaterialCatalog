@@ -34,9 +34,9 @@ namespace CollisionFinder
             //string newPath_2 = @"C:\Users\Alex\Desktop\файлы\Выгрузка 509 17.03.2020.zip\Выгрузка 509 17.03.2020_test_2.xlsx";
 
             //string newPath_3 = @"C:\Users\Alex\Desktop\файлы\TotalFile\TotalFile.xlsx";
-            //  MyCLI.Menu(); 
+            //  MyCLI.Menu();             
+            Test2(); // Test features
             Test(); // work this MTR CATALOG
-           // Test2(); // Test features
 
 
         }
@@ -48,9 +48,11 @@ namespace CollisionFinder
         static void IerarhTemplate()
         {
             //int allCount = 1909;
-            int allCount = 2304;
-            string filepath = @"C:\Users\Alex\Desktop\nomenclatur4.xlsx";
-            string filepath2 = @"C:\Users\Alex\Desktop\nomenclatur5.xlsx";
+            //int allCount = 2304;
+            int allCount = 2390;
+            //string filepath = @"C:\Users\Alex\Desktop\работа\Справочник\nomenclatur4.xlsx";
+            string filepath = @"C:\Users\Alex\Desktop\работа\Справочник\nomtemp.xlsx";
+            string filepath2 = @"C:\Users\Alex\Desktop\работа\Справочник\nomenclatur5.xlsx";
             using (var fs = new FileStream(filepath, FileMode.Open))
             {
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -136,9 +138,6 @@ namespace CollisionFinder
                 MTR_Catalog.ConvertEI(ref MaterialCatalog);
 
                 FormBD(sheet, MaterialCatalog);
-
-                
-
 
                 CodeCatalogList = MTR_Catalog.Header(sheet, MaterialCatalog);
 
@@ -314,17 +313,20 @@ namespace CollisionFinder
                 }
             }
             //NHibernateWork();
-            BDExcelOutput(); //вывод базы в excel
+            //BDExcelOutput(); //вывод базы в excel
             FormGeneralMtrCatalogExcel(MtrCatalogList);
         }
-
         
         static void FormGeneralMtrCatalogExcel(List<MTR_Catalog> catalogs)
         {
-            int allCount = 2304;
+            //int allCount = 2304;
+            //int allCount = 2303;
+            int allCount = 2390;
+
             int allNumSheet2 = 6;
-            string filepath = @"C:\Users\Alex\Desktop\nomenclatur5.xlsx";
-            string filepath2 = @"C:\Users\Alex\Desktop\nomenclatur2.xlsx";
+            int allNumSheet3 = 6;
+            string filepath = @"C:\Users\Alex\Desktop\работа\Справочник\nomenclatur5.xlsx";
+            string filepath2 = @"C:\Users\Alex\Desktop\работа\Справочник\nomenclatur2.xlsx";
             Console.WriteLine("Чтение документа: " + Functions.FirstNameFile(filepath));
             using (var fs = new FileStream(filepath, FileMode.Open))
             {
@@ -339,10 +341,11 @@ namespace CollisionFinder
                     ExcelWorksheet sheet = doc.Workbook.Worksheets["Sheet1"];
                     ExcelWorksheet sheet2 = doc.Workbook.Worksheets["Sheet2"];
                     sheet.Cells[1, 1, 5, 10].Copy(sheet2.Cells[1, 1, 5, 10]);
+                    ExcelWorksheet sheet3 = doc.Workbook.Worksheets["Sheet3"];
+                    sheet.Cells[1, 1, 5, 10].Copy(sheet3.Cells[1, 1, 5, 10]);
                     Console.WriteLine("Конец чтения таблицы");
 
                     //work with MTR
-                    int aaa = 0;
                     foreach(var MMM in materialGroupDB)
                     {
                         int NumG = -1;
@@ -384,6 +387,35 @@ namespace CollisionFinder
                         }
                         else
                         {
+                            int NumG3 = -1;
+                            for (int j = 1; j <= allCount; j++)
+                            {
+                                if (MMM.Group_code.Length < 3) continue;
+                                string tmpString = (sheet.Cells[j, 1].Value ?? string.Empty).ToString();
+                                if(tmpString.Length >= 3)
+                                {
+                                    if (tmpString.Substring(0,3) == MMM.Group_code.Substring(0, 3))
+                                    {
+                                        NumG3 = j;
+                                        break;
+                                    }
+                                }
+                                
+                            }
+                            if(NumG3 != -1)
+                            {
+                                int numSheet3 = allNumSheet3;
+                                sheet3.InsertRow(numSheet3 + 1, 1);
+                                allNumSheet3 += 1;
+                                foreach (var s1 in MMM.Material)
+                                {
+                                    sheet3.Cells[numSheet3, 1].Value = MMM.Group_code;
+                                    sheet3.Cells[numSheet3, 2].Value = MMM.Group_class_name;
+                                    break;
+                                }
+                            }
+                            
+
                             int numSheet2 = allNumSheet2;
                             bool first = true;
                             var sum = MMM.Material.Count();

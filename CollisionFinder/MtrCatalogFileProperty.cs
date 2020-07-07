@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace CollisionFinder
 {
-
+    /// <summary>
+    /// Поиск колонок по наименованию полей в excel файле 
+    /// </summary>
     class MtrCatalogFileProperty
     {
         private readonly int _find_size = 500;
