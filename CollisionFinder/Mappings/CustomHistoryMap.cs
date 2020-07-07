@@ -22,6 +22,9 @@ namespace CollisionFinder.Mappings
             Map(x => x.Alt_measure_unit);
             Map(x => x.Count_AMU);
             Map(x => x.Shipment_price_AMU);
+            Map(x => x.DATE_SCHF);
+            Map(x => x.KOL_SCHF);
+            Map(x => x.SUM_SCHF);
 
             References(x => x.Material);
         }

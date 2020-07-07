@@ -312,7 +312,7 @@ namespace CollisionFinder
                     materialDB.Add(_material);
                 }
             }
-            //NHibernateWork();
+            NHibernateWork();
             //BDExcelOutput(); //вывод базы в excel
             FormGeneralMtrCatalogExcel(MtrCatalogList);
         }
@@ -675,7 +675,7 @@ namespace CollisionFinder
         {
             //material.CustomHistory = new List<DB.Custom_history>();
 
-            double countA, countB, priceA, priceB;
+            double countA, countB, priceA, priceB, sumSchf, countSchf;
             DB.CustomHistory _History = new DB.CustomHistory();
             //_History.Material_ID = material.ID;
             _History.Shipment_date = catalog.DeliveryDate;
@@ -692,6 +692,11 @@ namespace CollisionFinder
             _History.Count_AMU = countA;
             Double.TryParse(catalog.AltMUPrice, out priceA);
             _History.Shipment_price_AMU = priceA;
+            Double.TryParse(catalog.SumSCHFWithoutNDS, out sumSchf);
+            _History.SUM_SCHF = sumSchf;
+            Double.TryParse(catalog.Kol_voSCHF, out countSchf);
+            _History.KOL_SCHF = countSchf;
+            _History.DATE_SCHF = catalog.DateSchf;
 
             _History.Material = material;
             //_History.ID = customHistoryDB.Count; // for NHibernate

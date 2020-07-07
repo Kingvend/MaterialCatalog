@@ -18,6 +18,9 @@ namespace CollisionFinder.DB
         public virtual string Alt_measure_unit { get; set; }
         public virtual double Count_AMU { get; set; }
         public virtual double Shipment_price_AMU { get; set; }
+        public virtual double KOL_SCHF { get; set; }
+        public virtual double SUM_SCHF { get; set; }
+        public virtual string DATE_SCHF { get; set; }
 
         public virtual DB.Material Material { get; set; }
     }
