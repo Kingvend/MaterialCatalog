@@ -1,6 +1,7 @@
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 using NHibernate;
+using NHibernate.Linq;
 using NHibernate.Tool.hbm2ddl;
 using NHibernate.Cfg;
 using OfficeOpenXml;
@@ -36,14 +37,46 @@ namespace CollisionFinder
 
             //string newPath_3 = @"C:\Users\Alex\Desktop\файлы\TotalFile\TotalFile.xlsx";
             //  MyCLI.Menu();             
-            Test2(); // Test features
-            Test(); // work this MTR CATALOG
+            //IerarhTemplate();
+            //Test(); // work this MTR CATALOG
+            Test3();
 
 
         }
         static void Test2()
         {
-            IerarhTemplate();
+            IerarhTemplate();         
+        }
+
+        static void Test3()
+        {
+            var historyList = new List<DB.CustomHistory>();
+            string str = "";
+            Console.WriteLine("Введите код МТР: ");
+            str = Console.ReadLine();
+            historyList = NHibernateQueryCost(str);
+            if(historyList.Count == 0)
+            {
+                Console.WriteLine("Код не найден");
+            }
+            else
+            {
+                var tmp = historyList
+                .GroupBy(s => s.Basis_measure_unit)
+                .ToList();
+                Console.WriteLine("-----------------------------------------------------------------------------------------------------");
+                Console.WriteLine("Наименование МТР: {0}", historyList[0].Material.Material_name);
+                Console.WriteLine("Полное наименование МТР {0}", historyList[0].Material.Material_fullname);
+                Console.WriteLine("Базовый код: {0}", historyList[0].Material.Basic_code);
+                foreach (var s in tmp)
+                {
+                    List<DB.CustomHistory> vvv = new List<DB.CustomHistory>();
+                    double ans = Functions.SumMtrDB(s.ToList(), 1.055, 1.06, 2019);
+                    Console.WriteLine("Цена МТР ({0}): {1}", s.ToList()[0].Basis_measure_unit, Math.Round(ans, 2));
+                }
+                
+            }
+            Console.ReadKey();
         }
 
         static void IerarhTemplate()
@@ -322,19 +355,7 @@ namespace CollisionFinder
                     
                 }
             }
-            //// Формируется Справочник адрес поставок
-            //var FHistory = customHistoryDB.GroupBy(x => x.Consignee_detail);
-            //foreach (var s2 in FHistory)
-            //{
-            //    DB.ConsigneeDetail _detail = new DB.ConsigneeDetail();
-            //    _detail.Address = s2.Key;
-            //    foreach(var s3 in s2)
-            //    {
-            //        _detail.CustomHistory.Add(s3);
-            //        s3.ConsigneeDetail = _detail;
-            //    }
-            //    consigneeDetailDB.Add(_detail);
-            //}
+
             NHibernateWork();
             //NHibernateRead();
             //BDExcelOutput(); //вывод базы в excel
@@ -778,6 +799,35 @@ namespace CollisionFinder
                 }           
             }
         }
+
+        static List<DB.CustomHistory> NHibernateQueryCost(string arg)
+        {
+            var ans = new List<DB.CustomHistory>();
+            var sessionFactory = CreateSessionFactory_f();
+            using (var session = sessionFactory.OpenSession())
+            {
+                using (var transaction = session.BeginTransaction())
+                {
+                    var tmp = session.Query<DB.MaterialCode>()
+                        .Where(s => s.Alternative_code == arg)
+                        .ToList();
+                    if(tmp.Count != 0)
+                    {
+                        var tmp2 = session.Query<DB.CustomHistory>()
+                       .Where(s => s.Material.Material_name == tmp[0].Material.Material_name &&
+                       s.Material.Material_fullname == tmp[0].Material.Material_fullname)
+                       .ToList();
+                        ans = tmp2;
+                    }
+                   
+
+                    transaction.Commit();
+                    
+                }               
+            }
+            return ans;
+        }
+
         private static ISessionFactory CreateSessionFactory()
         {
             var connectionStr = "Server=127.0.0.1;Port=5432;Database=MtrCatalog;User Id=postgres;Password=123456;";

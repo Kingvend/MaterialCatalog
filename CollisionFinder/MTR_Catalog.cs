@@ -299,7 +299,7 @@ namespace CollisionFinder
                         {
                             var tmp2 = new DiffMU();
                             tmp2.MU = tmp1.Key;
-                            tmp2.Sum = Functions.SumMtr(tmp1.ToList(), 1.055, 1.06, 2019);
+                            tmp2.Sum = Math.Round(Functions.SumMtr(tmp1.ToList(), 1.055, 1.06, 2019), 2);
                             tmp2.Flag = false;
                             DiffMUList.Add(tmp2);
                         }
