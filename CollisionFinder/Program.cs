@@ -713,7 +713,8 @@ namespace CollisionFinder
         {
             //material.CustomHistory = new List<DB.Custom_history>();
 
-            double countA, countB, priceA, priceB, sumSchf, countSchf;
+            //double countA, countB, priceA, priceB;
+            double sumSchf, countSchf;
             DB.CustomHistory _History = new DB.CustomHistory();
             //_History.Material_ID = material.ID;
             _History.Shipment_date = catalog.DeliveryDate;
