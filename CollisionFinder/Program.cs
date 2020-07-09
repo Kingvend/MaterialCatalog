@@ -24,6 +24,7 @@ namespace CollisionFinder
         public static List<DB.MaterialGroup> materialGroupDB = new List<DB.MaterialGroup>();
         public static List<DB.MaterialCode> materialCodeDB = new List<DB.MaterialCode>();
         public static List<DB.CustomHistory> customHistoryDB = new List<DB.CustomHistory>();
+        public static List<DB.ConsigneeDetail> consigneeDetailDB = new List<DB.ConsigneeDetail>();
 
         static void Main(string[] args)
         {
@@ -226,6 +227,9 @@ namespace CollisionFinder
 
             FormGroup2Params(MtrCatalogList);
 
+            // Формируется Таблица - справочник "Базис поставки"
+            CreateConsigneeDetail(MtrCatalogList);
+
             var ShortNameGroup = MtrCatalogList
         .GroupBy(s => s.MaterialFullName);
             foreach (var s0 in ShortNameGroup)
@@ -297,24 +301,44 @@ namespace CollisionFinder
 
                     cc.AltCode = difCode;
                     _material.Basic_code = cc.BaseCode;
+                    _material.IsHide = cc.BaseCode == "NONE" ? "1" :"0";
                     _material.Measure_unit = cc.BaseMU;
                     _material.Brutto = cc.BaseBrutto;
                     CodeCatalogList.Add(cc);
                     CreateMaterialCode(ref _material, cc);
+                    
 
                     // формируется история
                     var gg = s1
                         .OrderBy(s => s.MaterialCode);
                     foreach (var s2 in gg)
-                    {                       
-                        CreateCustomHistory(ref _material, s2);
+                    {
+                        var Detail = consigneeDetailDB
+                            .Where(s => s.Address == s2.ConsigneeDetail)
+                            .First();
+                        CreateCustomHistory(ref _material, ref Detail, s2);
                     }
                     materialDB.Add(_material);
+                    
                 }
             }
+            //// Формируется Справочник адрес поставок
+            //var FHistory = customHistoryDB.GroupBy(x => x.Consignee_detail);
+            //foreach (var s2 in FHistory)
+            //{
+            //    DB.ConsigneeDetail _detail = new DB.ConsigneeDetail();
+            //    _detail.Address = s2.Key;
+            //    foreach(var s3 in s2)
+            //    {
+            //        _detail.CustomHistory.Add(s3);
+            //        s3.ConsigneeDetail = _detail;
+            //    }
+            //    consigneeDetailDB.Add(_detail);
+            //}
             NHibernateWork();
+            //NHibernateRead();
             //BDExcelOutput(); //вывод базы в excel
-            FormGeneralMtrCatalogExcel(MtrCatalogList);
+            //FormGeneralMtrCatalogExcel(MtrCatalogList);
         }
         
         static void FormGeneralMtrCatalogExcel(List<MTR_Catalog> catalogs)
@@ -569,11 +593,13 @@ namespace CollisionFinder
                     sheet2.Cells[n, 3].Value = s.Shipment_date;
                     sheet2.Cells[n, 4].Value = s.Consignee_detail;
                     sheet2.Cells[n, 5].Value = s.Basis_measure_unit;
-                    sheet2.Cells[n, 6].Value = s.Count_BMU;
-                    sheet2.Cells[n, 7].Value = s.Shipment_price_BMU;
-                    sheet2.Cells[n, 8].Value = s.Alt_measure_unit;
-                    sheet2.Cells[n, 9].Value = s.Count_AMU;
-                    sheet2.Cells[n, 10].Value = s.Shipment_price_AMU;
+
+                    // Временно убрал, при необходимости вернуть 
+                    //sheet2.Cells[n, 6].Value = s.Count_BMU;   
+                    //sheet2.Cells[n, 7].Value = s.Shipment_price_BMU;
+                    //sheet2.Cells[n, 8].Value = s.Alt_measure_unit;
+                    //sheet2.Cells[n, 9].Value = s.Count_AMU;
+                    //sheet2.Cells[n, 10].Value = s.Shipment_price_AMU;
                     n++;
                 }
                 ExcelWorksheet sheet3 = doc.Workbook.Worksheets.Add("Code");
@@ -671,7 +697,19 @@ namespace CollisionFinder
             }
         }
 
-        public static void CreateCustomHistory(ref DB.Material material, MTR_Catalog catalog)
+        public static void CreateConsigneeDetail(List<MTR_Catalog> catalogList)
+        {            
+            var tmp = catalogList
+                .GroupBy(s => s.ConsigneeDetail);
+            foreach(var s1 in tmp)
+            {
+                DB.ConsigneeDetail _detail = new DB.ConsigneeDetail();
+                _detail.Address = s1.Key;
+                consigneeDetailDB.Add(_detail);
+            }
+        }
+
+        public static void CreateCustomHistory(ref DB.Material material, ref DB.ConsigneeDetail detail, MTR_Catalog catalog)
         {
             //material.CustomHistory = new List<DB.Custom_history>();
 
@@ -682,16 +720,16 @@ namespace CollisionFinder
             _History.Consignee_detail = catalog.ConsigneeDetail;
 
             _History.Basis_measure_unit = catalog.BasisMU;
-            Double.TryParse(catalog.BasisMUCount, out countB);
-            _History.Count_BMU = countB;
-            Double.TryParse(catalog.BasisMUPrice, out priceB);
-            _History.Shipment_price_BMU = priceB;
+            //Double.TryParse(catalog.BasisMUCount, out countB);
+            //_History.Count_BMU = countB;
+            //Double.TryParse(catalog.BasisMUPrice, out priceB);
+            //_History.Shipment_price_BMU = priceB;
 
-            _History.Alt_measure_unit = catalog.AltMU;
-            Double.TryParse(catalog.AltMUCount, out countA);
-            _History.Count_AMU = countA;
-            Double.TryParse(catalog.AltMUPrice, out priceA);
-            _History.Shipment_price_AMU = priceA;
+            //_History.Alt_measure_unit = catalog.AltMU;
+            //Double.TryParse(catalog.AltMUCount, out countA);
+            //_History.Count_AMU = countA;
+            //Double.TryParse(catalog.AltMUPrice, out priceA);
+            //_History.Shipment_price_AMU = priceA;
             Double.TryParse(catalog.SumSCHFWithoutNDS, out sumSchf);
             _History.SUM_SCHF = sumSchf;
             Double.TryParse(catalog.Kol_voSCHF, out countSchf);
@@ -699,9 +737,11 @@ namespace CollisionFinder
             _History.DATE_SCHF = catalog.DateSchf;
 
             _History.Material = material;
+            _History.ConsigneeDetail = detail;
             //_History.ID = customHistoryDB.Count; // for NHibernate
             customHistoryDB.Add(_History);
             material.CustomHistory.Add(_History);
+            detail.CustomHistory.Add(_History);
 
         }
 
@@ -712,6 +752,10 @@ namespace CollisionFinder
             {
                 using (var transaction = session.BeginTransaction())
                 {
+                    foreach (var obj in consigneeDetailDB)
+                    {
+                        session.SaveOrUpdate(obj);
+                    }
                     foreach (var obj in materialGroupDB)
                     {
                         session.SaveOrUpdate(obj);
@@ -721,6 +765,18 @@ namespace CollisionFinder
             }
         }
 
+        static void NHibernateRead()
+        {
+            var sessionFactory = CreateSessionFactory_f();
+            using (var session = sessionFactory.OpenSession())
+            {
+                using (var transaction = session.BeginTransaction())
+                {
+                    var tmp = session.CreateCriteria<DB.MaterialGroup>().List();
+                    transaction.Commit();
+                }           
+            }
+        }
         private static ISessionFactory CreateSessionFactory()
         {
             var connectionStr = "Server=127.0.0.1;Port=5432;Database=MtrCatalog;User Id=postgres;Password=123456;";
@@ -730,6 +786,17 @@ namespace CollisionFinder
               .Mappings(m => m.FluentMappings.AddFromAssemblyOf<Program>())
               //.ExposeConfiguration(cfg => { new SchemaExport(cfg).Create(false, true);})
               .ExposeConfiguration(BuildSchema)
+              .BuildSessionFactory();
+        }
+
+        private static ISessionFactory CreateSessionFactory_f()
+        {
+            var connectionStr = "Server=127.0.0.1;Port=5432;Database=MtrCatalog;User Id=postgres;Password=123456;";
+            return Fluently.Configure()
+              .Database(
+                PostgreSQLConfiguration.Standard.ConnectionString(connectionStr))
+              .Mappings(m => m.FluentMappings.AddFromAssemblyOf<Program>())
+              //.ExposeConfiguration(cfg => { new SchemaExport(cfg).Create(false, true);})
               .BuildSessionFactory();
         }
 

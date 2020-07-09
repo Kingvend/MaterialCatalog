@@ -104,6 +104,7 @@
   <ItemGroup>
     <Compile Include="BaseCodeAtribute.cs" />
     <Compile Include="CodeCatalog.cs" />
+    <Compile Include="DB\ConsigneeDetail.cs" />
     <Compile Include="DB\CustomHistory.cs" />
     <Compile Include="DB\Material.cs" />
     <Compile Include="DB\MaterialGroup.cs" />
@@ -112,6 +113,7 @@
     <Compile Include="FormGeneralMTRCatalogExcel.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="Collision.cs" />
+    <Compile Include="Mappings\ConsigneeDetailMap.cs" />
     <Compile Include="Mappings\CustomHistoryMap.cs" />
     <Compile Include="Mappings\MaterialCodeMap.cs" />
     <Compile Include="Mappings\MaterialGroupMap.cs" />

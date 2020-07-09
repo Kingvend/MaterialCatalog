@@ -17,16 +17,17 @@ namespace CollisionFinder.Mappings
                 .Length(1000);
             Map(x => x.Shipment_date);
             Map(x => x.Basis_measure_unit);
-            Map(x => x.Count_BMU);
-            Map(x => x.Shipment_price_BMU);
-            Map(x => x.Alt_measure_unit);
-            Map(x => x.Count_AMU);
-            Map(x => x.Shipment_price_AMU);
+            //Map(x => x.Count_BMU);
+            //Map(x => x.Shipment_price_BMU);
+            //Map(x => x.Alt_measure_unit);
+            //Map(x => x.Count_AMU);
+            //Map(x => x.Shipment_price_AMU);
             Map(x => x.DATE_SCHF);
             Map(x => x.KOL_SCHF);
             Map(x => x.SUM_SCHF);
 
             References(x => x.Material);
+            References(x => x.ConsigneeDetail);
         }
     }
 }
